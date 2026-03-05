@@ -1,10 +1,10 @@
-# VJ Chat Order for WooCommerce
+# VJ Chat Connect
 
-[![WordPress Plugin Version](https://img.shields.io/badge/version-2.1.0-blue)](https://github.com/VJ-Ranga/VJ-Chat-Order-for-WooCommerce)
+[![WordPress Plugin Version](https://img.shields.io/badge/version-2.1.0-blue)](https://github.com/VJ-Ranga/VJ-Chat-Connect)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0)
 [![WooCommerce](https://img.shields.io/badge/WooCommerce-Compatible-blueviolet)](https://woocommerce.com/)
 
-![VJ Chat Order Banner](svn-assets/banner-772x250.png)
+![VJ Chat Connect Banner](svn-assets/banner-772x250.png)
 
 Adds a customizable **"Order via Chat App"** button to your WooCommerce product pages, allowing customers to send order details directly to your WhatsApp number.
 
@@ -84,7 +84,7 @@ Hello, I'd like to place an order:
 2. Go to **Plugins > Add New > Upload Plugin**
 3. Upload the ZIP file and click **Install Now**
 4. Activate the plugin
-5. Go to **Settings > VJ Chat Order** to configure
+5. Go to **Settings > Chat Connect** to configure
 
 ---
 
@@ -112,7 +112,7 @@ Hello, I'd like to place an order:
 - **NEW:** Shortcode support `[vj_chat_order_button]`
 
 ### 1.4.0
-- Plugin renamed to "VJ Chat Order for WooCommerce"
+- Plugin renamed to "VJ Chat Connect"
 
 ### 1.0.0
 - Initial release
@@ -127,6 +127,6 @@ This plugin is released under the **GPLv2** license.
 
 ## 🔗 Links
 
-- **GitHub:** [VJ-Chat-Order-for-WooCommerce](https://github.com/VJ-Ranga/VJ-Chat-Order-for-WooCommerce)
+- **GitHub:** [VJ-Chat-Connect](https://github.com/VJ-Ranga/VJ-Chat-Connect)
 - **Author:** [VJ Ranga](https://vjranga.com/)
 - **Support:** [Buy Me a Coffee](https://www.buymeacoffee.com/vjranga)

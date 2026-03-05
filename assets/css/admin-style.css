@@ -1,5 +1,5 @@
 /**
- * VJ Chat Order - Admin Styles
+ * VJ Chat Connect - Admin Styles
  * Modern UI for Settings Page with Tabs and Sidebar
  * 
  * @package VJ_Chat_Order
@@ -454,6 +454,52 @@
     filter: brightness(0) invert(1);
 }
 
+/* ===== Chat Button Preview ===== */
+.vj-chat-preview-chat-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+    border-radius: 999px;
+    border: none;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.vj-chat-preview-chat-text {
+    font-size: inherit;
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 16px;
+    background-color: #ffffff;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.vj-chat-preview-chat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    box-shadow: 0 8px 18px rgba(37, 211, 102, 0.35);
+    position: relative;
+    z-index: 2;
+}
+
+.vj-chat-preview-chat-icon img {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) invert(1);
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 1100px) {
     .vj-chat-settings-wrap {
@@ -469,15 +515,115 @@
         position: static;
     }
 
-    .vj-chat-preview-sections {
-        display: flex;
-        gap: 16px;
-    }
+.vj-chat-preview-sections {
+    display: flex;
+    gap: 16px;
+}
 
-    .vj-chat-preview-section {
-        flex: 1;
-        margin-bottom: 0;
-    }
+.vj-chat-preview-section {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+
+.vj-chat-preview-widget {
+    padding: 0;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+}
+
+.vj-chat-preview-widget-header {
+    padding: 14px 16px;
+    position: relative;
+}
+
+.vj-chat-preview-widget-header-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.vj-chat-preview-widget-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.vj-chat-preview-widget-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vj-chat-preview-widget-header-text {
+    flex: 1;
+    padding-right: 32px;
+}
+
+.vj-chat-preview-widget-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.vj-chat-preview-widget-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 11px;
+}
+
+.vj-chat-preview-widget-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.vj-chat-preview-widget-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.vj-chat-preview-widget-body {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vj-chat-preview-widget-bubble {
+    padding: 8px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    width: fit-content;
+    max-width: 85%;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
+.vj-chat-preview-widget-cta {
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
+}
 }
 
 @media (max-width: 600px) {
@@ -512,4 +658,139 @@
     .vj-chat-preview-sections {
         flex-direction: column;
     }
+}
+
+/* ===== Preview Mode (Global) ===== */
+.vj-chat-preview-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.vj-chat-preview-section {
+    margin-bottom: 0;
+}
+
+.vj-chat-preview-section-woo {
+    display: none;
+}
+
+.vj-chat-preview-mode-woo .vj-chat-preview-section-woo {
+    display: block;
+}
+
+.vj-chat-preview-mode-woo .vj-chat-preview-section-chat {
+    display: none;
+}
+
+.vj-chat-preview-toggle {
+    display: flex;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #f6f7f7;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    font-size: 12px;
+}
+
+.vj-chat-preview-toggle label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.vj-chat-preview-widget {
+    padding: 0;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+}
+
+.vj-chat-preview-widget-header {
+    padding: 14px 16px;
+}
+
+.vj-chat-preview-widget-header-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vj-chat-preview-widget-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.vj-chat-preview-widget-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vj-chat-preview-widget-header-text {
+    flex: 1;
+}
+
+.vj-chat-preview-widget-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.vj-chat-preview-widget-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 11px;
+}
+
+.vj-chat-preview-widget-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.vj-chat-preview-widget-close {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.vj-chat-preview-widget-body {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vj-chat-preview-widget-bubble {
+    padding: 8px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    width: fit-content;
+    max-width: 85%;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
+.vj-chat-preview-widget-cta {
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
 }

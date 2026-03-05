@@ -1,5 +1,7 @@
 jQuery(document).ready(function ($) {
 
+    
+
     // ==========================================
     // Tab Switching Logic
     // ==========================================
@@ -117,5 +119,77 @@ jQuery(document).ready(function ($) {
     $('.vj-chat-toast-dismiss').on('click', function () {
         $(this).closest('.vj-chat-toast').removeClass('show');
     });
+
+    // ==========================================
+    // Live Preview - Button Style Toggles
+    // ==========================================
+    function updateWooPreviewStyle() {
+        var isCompact = $('#vj_chat_button_style').val() === 'compact';
+        $('.vj-chat-preview-woo-full').toggle(!isCompact);
+        $('.vj-chat-preview-woo-compact').toggle(isCompact);
+    }
+
+    function updateChatPreviewStyle() {
+        var isCompact = $('#vj_chat_chat_button_style').val() === 'compact';
+        var preview = $('.vj-chat-preview-chat-btn');
+        var textEl = preview.find('.vj-chat-preview-chat-text');
+        var iconWrap = preview.find('.vj-chat-preview-chat-icon');
+        var iconImg = iconWrap.find('img');
+
+        textEl.toggle(!isCompact);
+
+        var wrapSize = parseInt(isCompact ? $('[name="vj_chat_chat_compact_size"]').val() : $('[name="vj_chat_chat_icon_wrap_size"]').val(), 10);
+        var iconSize = parseInt(isCompact ? $('[name="vj_chat_chat_compact_icon_size"]').val() : $('[name="vj_chat_chat_icon_size"]').val(), 10);
+
+        if (!isNaN(wrapSize)) {
+            iconWrap.css({ width: wrapSize + 'px', height: wrapSize + 'px' });
+        }
+        if (!isNaN(iconSize)) {
+            iconImg.css({ width: iconSize + 'px', height: iconSize + 'px' });
+        }
+    }
+
+    $(document).on('change', '#vj_chat_button_style', updateWooPreviewStyle);
+    $(document).on('change', '#vj_chat_chat_button_style', updateChatPreviewStyle);
+    $(document).on('input change', '[name="vj_chat_chat_compact_size"], [name="vj_chat_chat_compact_icon_size"], [name="vj_chat_chat_icon_wrap_size"], [name="vj_chat_chat_icon_size"]', updateChatPreviewStyle);
+
+    updateWooPreviewStyle();
+    updateChatPreviewStyle();
+
+    // ==========================================
+    // Live Preview - Button Style Toggles
+    // ==========================================
+    function updateWooPreviewStyle() {
+        var isCompact = $('#vj_chat_button_style').val() === 'compact';
+        $('.vj-chat-preview-woo-full').toggle(!isCompact);
+        $('.vj-chat-preview-woo-compact').toggle(isCompact);
+    }
+
+    function updateChatPreviewStyle() {
+        var isCompact = $('#vj_chat_chat_button_style').val() === 'compact';
+        var preview = $('.vj-chat-preview-chat-btn');
+        var textEl = preview.find('.vj-chat-preview-chat-text');
+        var iconWrap = preview.find('.vj-chat-preview-chat-icon');
+        var iconImg = iconWrap.find('img');
+
+        textEl.toggle(!isCompact);
+
+        var wrapSize = parseInt(isCompact ? $('[name="vj_chat_chat_compact_size"]').val() : $('[name="vj_chat_chat_icon_wrap_size"]').val(), 10);
+        var iconSize = parseInt(isCompact ? $('[name="vj_chat_chat_compact_icon_size"]').val() : $('[name="vj_chat_chat_icon_size"]').val(), 10);
+
+        if (!isNaN(wrapSize)) {
+            iconWrap.css({ width: wrapSize + 'px', height: wrapSize + 'px' });
+        }
+        if (!isNaN(iconSize)) {
+            iconImg.css({ width: iconSize + 'px', height: iconSize + 'px' });
+        }
+    }
+
+    $(document).on('change', '#vj_chat_button_style', updateWooPreviewStyle);
+    $(document).on('change', '#vj_chat_chat_button_style', updateChatPreviewStyle);
+    $(document).on('input change', '[name="vj_chat_chat_compact_size"], [name="vj_chat_chat_compact_icon_size"], [name="vj_chat_chat_icon_wrap_size"], [name="vj_chat_chat_icon_size"]', updateChatPreviewStyle);
+
+    updateWooPreviewStyle();
+    updateChatPreviewStyle();
 
 });

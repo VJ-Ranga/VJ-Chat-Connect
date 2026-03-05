@@ -1,4 +1,4 @@
-=== VJ Chat Order for WooCommerce ===
+=== VJ Chat Connect ===
 Contributors: vjranga
 Donate link: https://www.buymeacoffee.com/vjranga
 Tags: woocommerce, whatsapp, order, button, chat
@@ -8,13 +8,13 @@ Requires PHP: 7.4
 Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Plugin URI: https://github.com/VJ-Ranga/VJ-Chat-Order-for-WooCommerce
+Plugin URI: https://github.com/VJ-Ranga/VJ-Chat-Connect
 
 Adds a "Order via WhatsApp" button to WooCommerce products, allowing customers to send order details directly to your WhatsApp number.
 
 == Description ==
 
-VJ Chat Order for WooCommerce adds a beautiful, customizable button to your product pages that lets customers instantly contact you via WhatsApp with pre-filled order details.
+VJ Chat Connect adds beautiful, customizable chat and order buttons to your site, letting customers contact you quickly with pre-filled details.
 
 = Key Features =
 
@@ -61,7 +61,7 @@ Hello, I'd like to place an order:
 
 1. Upload the `vj-chat-order` folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Go to **Settings > VJ Chat Order** to configure your number and customize the button
+3. Go to **Settings > Chat Connect** to configure your number and customize the button
 4. The button will automatically appear on all WooCommerce product pages
 
 == Frequently Asked Questions ==
@@ -127,7 +127,7 @@ Yes, you can upload your own icon or use emojis. Use Win + . (Windows) or Cmd + 
 * Fix: Removed stray code artifacts from admin settings
 
 = 1.4.0 =
-* Rename: Plugin officially renamed to "VJ Chat Order for WooCommerce" (formerly WhatsApp Order Button).
+* Rename: Plugin officially renamed to "VJ Chat Connect".
 * Performance: Optimized uninstall process with direct SQL deletion.
 
 = 1.3.0 =
@@ -156,7 +156,7 @@ Yes, you can upload your own icon or use emojis. Use Win + . (Windows) or Cmd + 
 Major update with separated design settings for Standard and Compact modes. Adds floating button support and shortcode placement.
 
 = 1.4.0 =
-Plugin renamed to "VJ Chat Order for WooCommerce". Includes performance optimization.
+Plugin renamed to "VJ Chat Connect". Includes performance optimization.
 
 = 1.3.0 =
 This version adds helpful emoji tips and improves the user interface. Safe to update.
@@ -166,7 +166,7 @@ Important bug fixes for admin notifications and improved stability. Recommended 
 
 == Privacy Policy ==
 
-VJ Chat Order for WooCommerce does not collect, store, or transmit any user data. All order information is sent directly from the customer's device to WhatsApp.
+VJ Chat Connect does not collect, store, or transmit any user data. All order information is sent directly from the customer's device to the selected chat app.
 
 == Support ==
 
