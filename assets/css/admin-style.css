@@ -19,10 +19,18 @@
     /* Allow clicks through container */
 }
 
-/* HIDE DEFAULT WORDPRESS NOTICE */
-.wrap>.notice.notice-success,
-.wrap>.updated,
-.notice-success {
+body.settings_page_vj-chat-settings .wrap > .notice-success,
+body.settings_page_vj-chat-settings .wrap > .updated,
+body.settings_page_vj-chat-settings .wrap > .notice.notice-success,
+body.settings_page_vj-chat-settings .wrap > .notice.updated,
+body.settings_page_vj-chat-settings .wrap > .notice.is-dismissible,
+body.settings_page_vj-chat-settings .wrap > .updated.notice {
+    display: none !important;
+}
+
+body.settings_page_vj-chat-settings .wrap .notice.settings-error.notice-success,
+body.settings_page_vj-chat-settings .wrap .notice.updated.settings-error,
+body.settings_page_vj-chat-settings .wrap .notice.settings-error {
     display: none !important;
 }
 

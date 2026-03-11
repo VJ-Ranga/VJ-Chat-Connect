@@ -410,7 +410,7 @@ function vj_chat_enqueue_assets()
     wp_enqueue_script(
         'vj-chat-script',
         VJ_CHAT_PLUGIN_URL . 'assets/js/vj-chat-script.js', // Updated filename
-        array('jquery'),
+        array(),
         VJ_CHAT_VERSION,
         true
     );
@@ -490,7 +490,6 @@ function vj_chat_add_dynamic_styles()
     // Floating settings (WooCommerce)
     $mode = get_option('vj_chat_placement_mode', 'auto');
     $floating_pos = get_option('vj_chat_floating_position', 'bottom-right');
-    // $dist = absint(get_option('vj_chat_floating_distance', 20)); // Deprecated
     $offset_x = absint(get_option('vj_chat_floating_offset_x', 20));
     $offset_y = absint(get_option('vj_chat_floating_offset_y', 20));
 

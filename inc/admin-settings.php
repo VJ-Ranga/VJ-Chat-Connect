@@ -417,8 +417,6 @@ function vj_chat_register_settings_init()
         'default' => 'bottom-right'
     ));
 
-    // register_setting('vj_chat_settings_group', 'vj_chat_floating_distance', ...); // Deprecated
-
     register_setting('vj_chat_settings_group', 'vj_chat_floating_offset_x', array(
         'sanitize_callback' => 'absint',
         'default' => 20
@@ -533,167 +531,6 @@ function vj_chat_register_settings_init()
         ));
     }
 
-    // ===== General Section =====
-    add_settings_section(
-        'vj_chat_main_section',
-        __('General Settings', 'vj-chat-order'),
-        'vj_chat_section_callback',
-        'vj-chat-settings'
-    );
-
-    add_settings_section(
-        'vj_chat_placement_section',
-        __('Placement Settings', 'vj-chat-order'),
-        'vj_chat_placement_section_callback',
-        'vj-chat-settings'
-    );
-
-    // ===== Design Section =====
-    add_settings_section(
-        'vj_chat_design_section',
-        __('Button Design', 'vj-chat-order'),
-        'vj_chat_design_section_callback',
-        'vj-chat-settings'
-    );
-
-    // ===== General Fields =====
-    add_settings_field(
-        'vj_chat_phone_number',
-        __('WhatsApp Phone Number', 'vj-chat-order'),
-        'vj_chat_phone_field_callback',
-        'vj-chat-settings',
-        'vj_chat_main_section'
-    );
-
-    add_settings_field(
-        'vj_chat_button_text',
-        __('Button Text', 'vj-chat-order'),
-        'vj_chat_button_text_field_callback',
-        'vj-chat-settings',
-        'vj_chat_main_section'
-    );
-
-    add_settings_field(
-        'vj_chat_icon_url',
-        __('WhatsApp Icon URL', 'vj-chat-order'),
-        'vj_chat_icon_url_field_callback',
-        'vj-chat-settings',
-        'vj_chat_main_section'
-    );
-
-    add_settings_field(
-        'vj_chat_intro_message',
-        __('Custom Intro Message', 'vj-chat-order'),
-        'vj_chat_intro_message_field_callback',
-        'vj-chat-settings',
-        'vj_chat_main_section'
-    );
-
-    // ===== Placement Fields =====
-    add_settings_field(
-        'vj_chat_placement_mode',
-        __('Button Placement', 'vj-chat-order'),
-        'vj_chat_placement_mode_callback',
-        'vj-chat-settings',
-        'vj_chat_placement_section'
-    );
-
-    add_settings_field(
-        'vj_chat_floating_position',
-        __('Floating Position', 'vj-chat-order'),
-        'vj_chat_floating_position_callback',
-        'vj-chat-settings',
-        'vj_chat_placement_section'
-    );
-
-    add_settings_field(
-        'vj_chat_floating_offset_x',
-        __('Horizontal Offset (Left/Right)', 'vj-chat-order'),
-        'vj_chat_floating_offset_x_callback',
-        'vj-chat-settings',
-        'vj_chat_placement_section'
-    );
-
-    add_settings_field(
-        'vj_chat_floating_offset_y',
-        __('Vertical Offset (Up/Down)', 'vj-chat-order'),
-        'vj_chat_floating_offset_y_callback',
-        'vj-chat-settings',
-        'vj_chat_placement_section'
-    );
-
-    // ===== Design Fields =====
-    add_settings_field(
-        'vj_chat_button_style',
-        __('Button Style', 'vj-chat-order'),
-        'vj_chat_button_style_field_callback',
-        'vj-chat-settings',
-        'vj_chat_design_section'
-    );
-
-    add_settings_field(
-        'vj_chat_compact_size',
-        __('Compact Button Size', 'vj-chat-order'),
-        'vj_chat_compact_size_field_callback',
-        'vj-chat-settings',
-        'vj_chat_design_section'
-    );
-
-    add_settings_field(
-        'vj_chat_bg_color',
-        __('Background Color', 'vj-chat-order'),
-        'vj_chat_bg_color_field_callback',
-        'vj-chat-settings',
-        'vj_chat_design_section'
-    );
-
-    add_settings_field(
-        'vj_chat_text_color',
-        __('Text Color', 'vj-chat-order'),
-        'vj_chat_text_color_field_callback',
-        'vj-chat-settings',
-        'vj_chat_design_section'
-    );
-
-    add_settings_field(
-        'vj_chat_hover_color',
-        __('Hover Color', 'vj-chat-order'),
-        'vj_chat_hover_color_field_callback',
-        'vj-chat-settings',
-        'vj_chat_design_section'
-    );
-
-    add_settings_field(
-        'vj_chat_border_radius',
-        __('Border Radius', 'vj-chat-order'),
-        'vj_chat_border_radius_field_callback',
-        'vj-chat-settings',
-        'vj_chat_design_section'
-    );
-
-    add_settings_field(
-        'vj_chat_font_size',
-        __('Font Size', 'vj-chat-order'),
-        'vj_chat_font_size_field_callback',
-        'vj-chat-settings',
-        'vj_chat_design_section'
-    );
-
-    add_settings_field(
-        'vj_chat_margin',
-        __('Margin (Top / Bottom)', 'vj-chat-order'),
-        'vj_chat_margin_field_callback',
-        'vj-chat-settings',
-        'vj_chat_design_section'
-    );
-
-    add_settings_field(
-        'vj_chat_padding',
-        __('Padding (Vertical / Horizontal)', 'vj-chat-order'),
-        'vj_chat_padding_field_callback',
-        'vj-chat-settings',
-        'vj_chat_design_section'
-    );
 }
 add_action('admin_init', 'vj_chat_register_settings_init');
 
@@ -712,24 +549,6 @@ function vj_chat_sanitize_phone($input)
         return get_option('vj_chat_phone_number');
     }
     return $sanitized;
-}
-
-/**
- * Section callbacks
- */
-function vj_chat_section_callback()
-{
-    echo '<p>' . __('Configure chat and order buttons for your store and pages.', 'vj-chat-order') . '</p>';
-}
-
-function vj_chat_placement_section_callback()
-{
-    echo '<p>' . __('Choose where the button appears on your product pages.', 'vj-chat-order') . '</p>';
-}
-
-function vj_chat_design_section_callback()
-{
-    echo '<p>' . __('Customize the appearance of your WhatsApp buttons (Chat and WooCommerce).', 'vj-chat-order') . '</p>';
 }
 
 /**
@@ -1640,16 +1459,37 @@ function vj_chat_render_settings_page()
     $chat_shadow = $chat_bg_style === 'transparent' ? 'none' : '0 8px 20px rgba(0, 0, 0, 0.18)';
     $chat_bg_final = $chat_bg_style === 'transparent' ? 'transparent' : $chat_bg_color;
     ?>
-    <div class="wrap vj-chat-settings-wrap">
+    <div class="wrap">
+        <div class="vj-chat-settings-wrap">
         <?php
         // Toast Notifications Logic
         $vj_chat_errors = get_settings_errors();
+        $show_success_toast = isset($_GET['settings-updated']) && $_GET['settings-updated'] === 'true';
+        $toast_errors = array();
+
         if (!empty($vj_chat_errors)) {
+            foreach ($vj_chat_errors as $error) {
+                $is_success = in_array($error['type'], array('success', 'updated'), true);
+                if ($is_success && $show_success_toast) {
+                    continue;
+                }
+                $toast_errors[] = $error;
+            }
+        }
+
+        if ($show_success_toast || !empty($toast_errors)) {
             ?>
             <div class="vj-chat-toast-container">
+                <?php if ($show_success_toast) : ?>
+                    <div class="vj-chat-toast show">
+                        <div class="vj-chat-toast-icon">✅</div>
+                        <div class="vj-chat-toast-message"><?php echo esc_html__('Settings saved.', 'vj-chat-order'); ?></div>
+                        <button type="button" class="vj-chat-toast-dismiss">&times;</button>
+                    </div>
+                <?php endif; ?>
                 <?php
                 $seen_codes = array();
-                foreach ($vj_chat_errors as $error) {
+                foreach ($toast_errors as $error) {
                     if (in_array($error['code'], $seen_codes))
                         continue;
                     $seen_codes[] = $error['code'];
@@ -2054,6 +1894,7 @@ function vj_chat_render_settings_page()
                     <?php _e('Compact: Round icon button (great for floating)', 'vj-chat-order'); ?>
                 </p>
             </div>
+        </div>
         </div>
     </div>
     <?php
