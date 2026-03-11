@@ -77,6 +77,7 @@ jQuery(document).ready(function ($) {
             var attachment = mediaUploader.state().get('selection').first().toJSON();
             $('#vj_chat_icon_url').val(attachment.url);
             $('.vj-chat-icon-preview img').attr('src', attachment.url);
+            refreshLivePreview();
         });
 
         // Open the uploader dialog
@@ -88,6 +89,7 @@ jQuery(document).ready(function ($) {
         e.preventDefault();
         $('#vj_chat_icon_url').val('');
         $('.vj-chat-icon-preview img').attr('src', defaultIcon);
+        refreshLivePreview();
     });
 
     // Valid URL Manual Entry Update
@@ -123,6 +125,7 @@ jQuery(document).ready(function ($) {
             var attachment = avatarUploader.state().get('selection').first().toJSON();
             $('#vj_chat_chat_agent_avatar').val(attachment.url);
             $('.vj-chat-agent-avatar-preview-img').attr('src', attachment.url);
+            refreshLivePreview();
         });
 
         avatarUploader.open();
@@ -132,6 +135,7 @@ jQuery(document).ready(function ($) {
         e.preventDefault();
         $('#vj_chat_chat_agent_avatar').val('');
         $('.vj-chat-agent-avatar-preview-img').attr('src', defaultAvatar);
+        refreshLivePreview();
     });
 
     $('#vj_chat_chat_agent_avatar').on('change input', function () {
@@ -194,11 +198,141 @@ jQuery(document).ready(function ($) {
         }
     }
 
+    function getFieldValue(name, fallback) {
+        var $field = $('[name="' + name + '"]');
+        if (!$field.length) {
+            return fallback;
+        }
+        var value = $field.val();
+        if (value === undefined || value === null || value === '') {
+            return fallback;
+        }
+        return value;
+    }
+
+    function refreshLivePreview() {
+        var iconUrl = getFieldValue('vj_chat_icon_url', '');
+        if (!iconUrl) {
+            iconUrl = defaultIcon;
+        }
+
+        // Shared icon updates
+        $('.vj-chat-preview-full-btn img, .vj-chat-preview-icon-btn img, .vj-chat-preview-chat-icon img, .vj-chat-preview-widget-cta img').attr('src', iconUrl);
+
+        // Woo preview updates
+        $('.vj-chat-preview-full-btn').css({
+            backgroundColor: getFieldValue('vj_chat_bg_color', '#25D366'),
+            color: getFieldValue('vj_chat_text_color', '#ffffff'),
+            borderRadius: getFieldValue('vj_chat_border_radius', 8) + 'px',
+            fontSize: getFieldValue('vj_chat_font_size', 16) + 'px',
+            padding: getFieldValue('vj_chat_padding_vertical', 14) + 'px ' + getFieldValue('vj_chat_padding_horizontal', 24) + 'px'
+        }).contents().filter(function () {
+            return this.nodeType === 3;
+        }).last().replaceWith(' ' + getFieldValue('vj_chat_button_text', 'Order via WhatsApp'));
+
+        $('.vj-chat-preview-icon-btn').css({
+            backgroundColor: getFieldValue('vj_chat_compact_bg_color', '#25D366'),
+            width: getFieldValue('vj_chat_compact_size', 44) + 'px',
+            height: getFieldValue('vj_chat_compact_size', 44) + 'px'
+        });
+        $('.vj-chat-preview-icon-btn img').css({
+            width: getFieldValue('vj_chat_compact_icon_size', 24) + 'px',
+            height: getFieldValue('vj_chat_compact_icon_size', 24) + 'px'
+        });
+
+        // Chat button preview updates
+        var chatStyle = getFieldValue('vj_chat_chat_button_style', 'standard');
+        var chatBgStyle = getFieldValue('vj_chat_chat_pill_bg_style', 'solid');
+        var chatBg = chatBgStyle === 'transparent' ? 'transparent' : getFieldValue('vj_chat_chat_pill_bg_color', '#ffffff');
+        var chatBorder = chatBgStyle === 'transparent' ? 'transparent' : '#e5e7eb';
+        var chatShadow = chatBgStyle === 'transparent' ? 'none' : '0 8px 20px rgba(0, 0, 0, 0.18)';
+
+        $('.vj-chat-preview-chat-btn').css({
+            color: getFieldValue('vj_chat_chat_text_color', '#1d2327'),
+            fontSize: getFieldValue('vj_chat_chat_font_size', 14) + 'px',
+            marginTop: getFieldValue('vj_chat_chat_margin_top', 0) + 'px',
+            marginBottom: getFieldValue('vj_chat_chat_margin_bottom', 0) + 'px'
+        });
+
+        $('.vj-chat-preview-chat-text')
+            .text(getFieldValue('vj_chat_chat_button_text', 'Need Help? Chat with us'))
+            .css({
+                backgroundColor: chatBg,
+                borderColor: chatBorder,
+                boxShadow: chatShadow,
+                color: getFieldValue('vj_chat_chat_text_color', '#1d2327'),
+                borderRadius: getFieldValue('vj_chat_chat_border_radius', 999) + 'px',
+                padding: getFieldValue('vj_chat_chat_padding_vertical', 10) + 'px ' + getFieldValue('vj_chat_chat_padding_horizontal', 16) + 'px'
+            })
+            .toggle(chatStyle !== 'compact');
+
+        $('.vj-chat-preview-chat-icon').css({
+            backgroundColor: getFieldValue('vj_chat_chat_icon_bg_color', '#25D366')
+        });
+
+        // Widget preview updates
+        var avatarUrl = getFieldValue('vj_chat_chat_agent_avatar', '');
+        if (!avatarUrl) {
+            avatarUrl = defaultAvatar;
+        }
+
+        $('.vj-chat-preview-widget').css({
+            backgroundColor: getFieldValue('vj_chat_chat_widget_body_bg', '#f0f0f0'),
+            borderRadius: getFieldValue('vj_chat_chat_widget_radius', 18) + 'px',
+            width: getFieldValue('vj_chat_chat_widget_width', 320) + 'px'
+        });
+        var maxHeight = parseInt(getFieldValue('vj_chat_chat_widget_max_height', 0), 10);
+        if (!isNaN(maxHeight) && maxHeight > 0) {
+            $('.vj-chat-preview-widget').css('max-height', maxHeight + 'px');
+        } else {
+            $('.vj-chat-preview-widget').css('max-height', '');
+        }
+
+        $('.vj-chat-preview-widget-header').css({
+            backgroundColor: getFieldValue('vj_chat_chat_widget_header_bg', '#25D366'),
+            color: getFieldValue('vj_chat_chat_widget_header_text', '#ffffff')
+        });
+        $('.vj-chat-preview-widget-title').text(getFieldValue('vj_chat_chat_widget_title', 'Start a Conversation'));
+        $('.vj-chat-preview-widget-status').css('color', getFieldValue('vj_chat_chat_widget_status_text', '#e5f4dc'));
+        $('.vj-chat-preview-widget-status').contents().filter(function () { return this.nodeType === 3; }).remove();
+        $('.vj-chat-preview-widget-status').append(document.createTextNode(' ' + getFieldValue('vj_chat_chat_widget_status', 'Typically replies within a day')));
+        $('.vj-chat-preview-widget-status-dot').css('background-color', getFieldValue('vj_chat_chat_widget_cta_bg', '#25D366'));
+        $('.vj-chat-preview-widget-close').css({
+            backgroundColor: getFieldValue('vj_chat_chat_widget_close_bg', '#25D366'),
+            color: getFieldValue('vj_chat_chat_widget_close_text', '#ffffff')
+        });
+        $('.vj-chat-preview-widget-body').css('background-color', getFieldValue('vj_chat_chat_widget_body_bg', '#f0f0f0'));
+        $('.vj-chat-preview-widget-bubble').css({
+            backgroundColor: getFieldValue('vj_chat_chat_widget_bubble_bg', '#ffffff'),
+            color: getFieldValue('vj_chat_chat_widget_bubble_text', '#1d2327')
+        });
+        $('.vj-chat-preview-widget-bubble').eq(0).text(getFieldValue('vj_chat_chat_widget_line1', 'Hi there!'));
+        $('.vj-chat-preview-widget-bubble').eq(1).text(getFieldValue('vj_chat_chat_widget_line2', 'How can I help you?'));
+        $('.vj-chat-preview-widget-cta').css({
+            backgroundColor: getFieldValue('vj_chat_chat_widget_cta_bg', '#25D366'),
+            color: getFieldValue('vj_chat_chat_widget_cta_text', '#ffffff')
+        });
+        $('.vj-chat-preview-widget-cta span').text(getFieldValue('vj_chat_chat_widget_cta', 'Chat on WhatsApp'));
+        $('.vj-chat-preview-widget-avatar img').attr('src', avatarUrl).css({
+            width: getFieldValue('vj_chat_chat_widget_avatar_scale', 100) + '%',
+            height: getFieldValue('vj_chat_chat_widget_avatar_scale', 100) + '%'
+        });
+
+        // Keep style toggles in sync
+        updateWooPreviewStyle();
+        updateChatPreviewStyle();
+    }
+
     $(document).on('change', '#vj_chat_button_style', updateWooPreviewStyle);
     $(document).on('change', '#vj_chat_chat_button_style', updateChatPreviewStyle);
     $(document).on('input change', '[name="vj_chat_chat_compact_size"], [name="vj_chat_chat_compact_icon_size"], [name="vj_chat_chat_icon_wrap_size"], [name="vj_chat_chat_icon_size"]', updateChatPreviewStyle);
+    $(document).on('input change', 'form[action="options.php"] [name^="vj_chat_"]', refreshLivePreview);
+
+    // Keep preview synced when media uploads update fields programmatically
+    $('#vj_chat_icon_url, #vj_chat_chat_agent_avatar').on('change input', refreshLivePreview);
 
     updateWooPreviewStyle();
     updateChatPreviewStyle();
+    refreshLivePreview();
 
 });
