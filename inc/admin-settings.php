@@ -788,8 +788,22 @@ function vj_chat_chat_agent_role_field_callback()
 function vj_chat_chat_agent_avatar_field_callback()
 {
     $value = get_option('vj_chat_chat_agent_avatar', '');
-    echo '<input type="url" name="vj_chat_chat_agent_avatar" value="' . esc_attr($value) . '" class="regular-text" placeholder="' . esc_attr__('Avatar image URL (optional)', 'vj-chat-order') . '">';
-    echo '<p class="description">' . __('Optional avatar URL for the chat agent.', 'vj-chat-order') . '</p>';
+    $fallback = vj_chat_get_default_icon_url();
+    $preview = !empty($value) ? $value : $fallback;
+    ?>
+    <div class="vj-chat-avatar-upload-wrap">
+        <input type="url" id="vj_chat_chat_agent_avatar" name="vj_chat_chat_agent_avatar"
+            value="<?php echo esc_attr($value); ?>" class="regular-text"
+            placeholder="<?php esc_attr_e('Avatar image URL (optional)', 'vj-chat-order'); ?>">
+        <button type="button" class="button vj-chat-upload-avatar-btn"><?php _e('Upload Avatar', 'vj-chat-order'); ?></button>
+        <button type="button" class="button vj-chat-reset-avatar-btn"><?php _e('Reset', 'vj-chat-order'); ?></button>
+    </div>
+    <div class="vj-chat-agent-avatar-preview" style="margin-top: 10px;">
+        <img src="<?php echo esc_url($preview); ?>" alt="Agent Avatar" class="vj-chat-agent-avatar-preview-img" loading="lazy"
+            style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 1px solid #dcdcde; background: #fff;">
+    </div>
+    <p class="description"><?php _e('Upload from Media Library or paste an image URL. Recommended size: square image (at least 200x200 px).', 'vj-chat-order'); ?></p>
+    <?php
 }
 
 function vj_chat_chat_phone_field_callback()
@@ -1992,7 +2006,7 @@ function vj_chat_render_settings_page()
                     </div>
 
                     <!-- Compact Icon Preview -->
-                    <div class="vj-chat-preview-section vj-chat-preview-chat-widget">
+                    <div class="vj-chat-preview-section vj-chat-preview-woo-compact">
                         <div class="vj-chat-preview-label"><?php esc_html_e('Compact Button', 'vj-chat-order'); ?>
                         </div>
                         <div class="vj-chat-preview-box sticky-preview">

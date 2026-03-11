@@ -51,6 +51,7 @@ jQuery(document).ready(function ($) {
     // ==========================================
     var defaultIcon = vjChatAdminData.defaultIcon;
     var mediaUploader;
+    var avatarUploader;
 
     $('.vj-chat-upload-icon-btn').on('click', function (e) {
         e.preventDefault();
@@ -99,6 +100,49 @@ jQuery(document).ready(function ($) {
     });
 
     // ==========================================
+    // Agent Avatar Uploader Logic
+    // ==========================================
+    $('.vj-chat-upload-avatar-btn').on('click', function (e) {
+        e.preventDefault();
+
+        if (avatarUploader) {
+            avatarUploader.open();
+            return;
+        }
+
+        avatarUploader = wp.media({
+            title: 'Select Agent Avatar',
+            button: {
+                text: 'Use This Avatar'
+            },
+            multiple: false
+        });
+
+        avatarUploader.on('select', function () {
+            var attachment = avatarUploader.state().get('selection').first().toJSON();
+            $('#vj_chat_chat_agent_avatar').val(attachment.url);
+            $('.vj-chat-agent-avatar-preview-img').attr('src', attachment.url);
+        });
+
+        avatarUploader.open();
+    });
+
+    $('.vj-chat-reset-avatar-btn').on('click', function (e) {
+        e.preventDefault();
+        $('#vj_chat_chat_agent_avatar').val('');
+        $('.vj-chat-agent-avatar-preview-img').attr('src', defaultIcon);
+    });
+
+    $('#vj_chat_chat_agent_avatar').on('change input', function () {
+        var url = $(this).val();
+        if (url.length > 0) {
+            $('.vj-chat-agent-avatar-preview-img').attr('src', url);
+        } else {
+            $('.vj-chat-agent-avatar-preview-img').attr('src', defaultIcon);
+        }
+    });
+
+    // ==========================================
     // Toast Notifications
     // ==========================================
 
@@ -119,42 +163,6 @@ jQuery(document).ready(function ($) {
     $('.vj-chat-toast-dismiss').on('click', function () {
         $(this).closest('.vj-chat-toast').removeClass('show');
     });
-
-    // ==========================================
-    // Live Preview - Button Style Toggles
-    // ==========================================
-    function updateWooPreviewStyle() {
-        var isCompact = $('#vj_chat_button_style').val() === 'compact';
-        $('.vj-chat-preview-woo-full').toggle(!isCompact);
-        $('.vj-chat-preview-woo-compact').toggle(isCompact);
-    }
-
-    function updateChatPreviewStyle() {
-        var isCompact = $('#vj_chat_chat_button_style').val() === 'compact';
-        var preview = $('.vj-chat-preview-chat-btn');
-        var textEl = preview.find('.vj-chat-preview-chat-text');
-        var iconWrap = preview.find('.vj-chat-preview-chat-icon');
-        var iconImg = iconWrap.find('img');
-
-        textEl.toggle(!isCompact);
-
-        var wrapSize = parseInt(isCompact ? $('[name="vj_chat_chat_compact_size"]').val() : $('[name="vj_chat_chat_icon_wrap_size"]').val(), 10);
-        var iconSize = parseInt(isCompact ? $('[name="vj_chat_chat_compact_icon_size"]').val() : $('[name="vj_chat_chat_icon_size"]').val(), 10);
-
-        if (!isNaN(wrapSize)) {
-            iconWrap.css({ width: wrapSize + 'px', height: wrapSize + 'px' });
-        }
-        if (!isNaN(iconSize)) {
-            iconImg.css({ width: iconSize + 'px', height: iconSize + 'px' });
-        }
-    }
-
-    $(document).on('change', '#vj_chat_button_style', updateWooPreviewStyle);
-    $(document).on('change', '#vj_chat_chat_button_style', updateChatPreviewStyle);
-    $(document).on('input change', '[name="vj_chat_chat_compact_size"], [name="vj_chat_chat_compact_icon_size"], [name="vj_chat_chat_icon_wrap_size"], [name="vj_chat_chat_icon_size"]', updateChatPreviewStyle);
-
-    updateWooPreviewStyle();
-    updateChatPreviewStyle();
 
     // ==========================================
     // Live Preview - Button Style Toggles

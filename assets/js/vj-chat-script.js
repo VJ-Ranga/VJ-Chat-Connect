@@ -188,7 +188,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             var textEl = document.createElement('span');
             textEl.className = 'vj-chat-widget-order-text';
-            textEl.innerHTML = '<strong>' + line.label + ':</strong> ' + line.value;
+            var strongEl = document.createElement('strong');
+            strongEl.textContent = line.label + ':';
+            textEl.appendChild(strongEl);
+            textEl.appendChild(document.createTextNode(' ' + line.value));
 
             row.appendChild(iconEl);
             row.appendChild(textEl);

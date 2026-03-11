@@ -52,6 +52,39 @@ function vj_chat_is_chat_enabled()
 }
 
 /**
+ * Check if current request is in WooCommerce coming soon mode
+ */
+function vj_chat_is_woo_coming_soon_page()
+{
+    if (!vj_chat_is_woocommerce_active()) {
+        return false;
+    }
+
+    if (class_exists('Automattic\\WooCommerce\\Internal\\ComingSoon\\ComingSoonHelper')) {
+        try {
+            if (function_exists('wc_get_container')) {
+                $helper = wc_get_container()->get(Automattic\WooCommerce\Internal\ComingSoon\ComingSoonHelper::class);
+                if ($helper && method_exists($helper, 'is_current_page_coming_soon')) {
+                    return (bool) $helper->is_current_page_coming_soon();
+                }
+            }
+        } catch (Exception $e) {
+            // Fall back to option check below.
+        }
+    }
+
+    // Fallback for older WooCommerce versions.
+    if (get_option('woocommerce_coming_soon') === 'yes') {
+        if (get_option('woocommerce_store_pages_only') === 'yes') {
+            return function_exists('is_product') && is_product();
+        }
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Get list of pages to hide chat floating button
  */
 function vj_chat_get_chat_hide_pages()
@@ -396,7 +429,7 @@ function vj_chat_enqueue_assets()
     wp_localize_script('vj-chat-script', 'vjChatData', array( // Renamed wobData to vjChatData
         'phoneNumber' => get_option('vj_chat_phone_number', '947000000000'),
         'introMessage' => get_option('vj_chat_intro_message', __('Hello, I\'d like to place an order:', 'vj-chat-order')),
-        'mode' => (function_exists('is_product') && is_product() && vj_chat_is_woocommerce_active() && vj_chat_is_woo_enabled()) ? 'order' : 'chat',
+        'mode' => (function_exists('is_product') && is_product() && vj_chat_is_woocommerce_active() && vj_chat_is_woo_enabled() && !vj_chat_is_woo_coming_soon_page()) ? 'order' : 'chat',
         'productName' => $product_name,
         'productUrl' => esc_url_raw($product_url),
         'currencySymbol' => $currency_symbol,
@@ -790,6 +823,10 @@ function vj_chat_render_button()
         return;
     }
 
+    if (vj_chat_is_woo_coming_soon_page()) {
+        return;
+    }
+
     $mode = get_option('vj_chat_placement_mode', 'auto');
     if ($mode === 'floating' && vj_chat_is_chat_enabled() && get_option('vj_chat_chat_placement_mode', 'floating') === 'floating' && !vj_chat_is_chat_hidden_on_page()) {
         if (function_exists('is_product') && is_product()) {
@@ -836,7 +873,7 @@ function vj_chat_render_chat_button()
     }
 
     $use_order_mode = false;
-    if (vj_chat_is_woocommerce_active() && vj_chat_is_woo_enabled() && function_exists('is_product') && is_product()) {
+    if (vj_chat_is_woocommerce_active() && vj_chat_is_woo_enabled() && function_exists('is_product') && is_product() && !vj_chat_is_woo_coming_soon_page()) {
         $woo_mode = get_option('vj_chat_placement_mode', 'auto');
         if ($woo_mode === 'floating') {
             $use_order_mode = true;
@@ -897,7 +934,7 @@ function vj_chat_render_chat_widget()
     $widget_mode = 'chat';
     $widget_message = $agent_message;
     $widget_phone = $agent_phone;
-    if (vj_chat_is_woocommerce_active() && vj_chat_is_woo_enabled() && function_exists('is_product') && is_product()) {
+    if (vj_chat_is_woocommerce_active() && vj_chat_is_woo_enabled() && function_exists('is_product') && is_product() && !vj_chat_is_woo_coming_soon_page()) {
         $woo_mode = get_option('vj_chat_placement_mode', 'auto');
         if ($woo_mode === 'floating') {
             $widget_mode = 'order';
@@ -956,7 +993,7 @@ function vj_chat_shortcode_callback($atts)
 
     $mode = $atts['mode'];
     if ($mode !== 'chat' && $mode !== 'order') {
-        $mode = (function_exists('is_product') && is_product() && vj_chat_is_woocommerce_active() && vj_chat_is_woo_enabled()) ? 'order' : 'chat';
+        $mode = (function_exists('is_product') && is_product() && vj_chat_is_woocommerce_active() && vj_chat_is_woo_enabled() && !vj_chat_is_woo_coming_soon_page()) ? 'order' : 'chat';
     }
 
     if ($mode === 'chat' && !vj_chat_is_chat_enabled()) {
