@@ -50,6 +50,7 @@ jQuery(document).ready(function ($) {
     // Media Uploader Logic
     // ==========================================
     var defaultIcon = vjChatAdminData.defaultIcon;
+    var defaultAvatar = vjChatAdminData.defaultAvatar || defaultIcon;
     var mediaUploader;
     var avatarUploader;
 
@@ -130,7 +131,7 @@ jQuery(document).ready(function ($) {
     $('.vj-chat-reset-avatar-btn').on('click', function (e) {
         e.preventDefault();
         $('#vj_chat_chat_agent_avatar').val('');
-        $('.vj-chat-agent-avatar-preview-img').attr('src', defaultIcon);
+        $('.vj-chat-agent-avatar-preview-img').attr('src', defaultAvatar);
     });
 
     $('#vj_chat_chat_agent_avatar').on('change input', function () {
@@ -138,7 +139,7 @@ jQuery(document).ready(function ($) {
         if (url.length > 0) {
             $('.vj-chat-agent-avatar-preview-img').attr('src', url);
         } else {
-            $('.vj-chat-agent-avatar-preview-img').attr('src', defaultIcon);
+            $('.vj-chat-agent-avatar-preview-img').attr('src', defaultAvatar);
         }
     });
 

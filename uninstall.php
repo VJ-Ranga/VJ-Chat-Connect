@@ -66,6 +66,7 @@ $vj_chat_options = array(
     'vj_chat_chat_widget_close_bg',
     'vj_chat_chat_widget_close_text',
     'vj_chat_chat_widget_overlay_opacity',
+    'vj_chat_chat_widget_avatar_scale',
     'vj_chat_enable_woo',
     'vj_chat_phone_number',
     'vj_chat_button_text',

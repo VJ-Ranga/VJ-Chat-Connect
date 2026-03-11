@@ -223,6 +223,14 @@ function vj_chat_get_default_icon_url()
 }
 
 /**
+ * Get default agent avatar URL
+ */
+function vj_chat_get_default_agent_avatar_url()
+{
+    return VJ_CHAT_PLUGIN_URL . 'assets/images/default-agent-avatar.svg';
+}
+
+/**
  * Include admin settings
  */
 require_once VJ_CHAT_PLUGIN_DIR . 'inc/admin-settings.php';
@@ -314,6 +322,7 @@ function vj_chat_activate()
         'vj_chat_chat_widget_close_bg' => '#25D366',
         'vj_chat_chat_widget_close_text' => '#ffffff',
         'vj_chat_chat_widget_overlay_opacity' => 0.25,
+        'vj_chat_chat_widget_avatar_scale' => 100,
         // WooCommerce Order settings
         'vj_chat_enable_woo' => 1,
         // General settings
@@ -605,6 +614,13 @@ function vj_chat_add_dynamic_styles()
     $widget_close_bg = get_option('vj_chat_chat_widget_close_bg', '#25D366');
     $widget_close_text = get_option('vj_chat_chat_widget_close_text', '#ffffff');
     $widget_overlay_opacity = floatval(get_option('vj_chat_chat_widget_overlay_opacity', 0.25));
+    $widget_avatar_scale = absint(get_option('vj_chat_chat_widget_avatar_scale', 100));
+    if ($widget_avatar_scale < 40) {
+        $widget_avatar_scale = 40;
+    }
+    if ($widget_avatar_scale > 100) {
+        $widget_avatar_scale = 100;
+    }
     if ($widget_overlay_opacity < 0) {
         $widget_overlay_opacity = 0;
     }
@@ -705,6 +721,10 @@ function vj_chat_add_dynamic_styles()
         }
         .vj-chat-widget-status {
             color: " . esc_attr($widget_status_text) . " !important;
+        }
+        .vj-chat-widget-avatar img {
+            width: " . esc_attr($widget_avatar_scale) . "% !important;
+            height: " . esc_attr($widget_avatar_scale) . "% !important;
         }
         .vj-chat-widget-overlay {
             background: rgba(0, 0, 0, " . esc_attr($widget_overlay_opacity) . ") !important;
@@ -926,8 +946,8 @@ function vj_chat_render_chat_widget()
     $widget_line_2 = get_option('vj_chat_chat_widget_line2', __('How can I help you?', 'vj-chat-order'));
     $widget_cta = get_option('vj_chat_chat_widget_cta', __('Chat on WhatsApp', 'vj-chat-order'));
 
-    if (empty($agent_avatar)) {
-        $agent_avatar = vj_chat_get_default_icon_url();
+    if (empty($agent_avatar) || $agent_avatar === vj_chat_get_default_icon_url()) {
+        $agent_avatar = vj_chat_get_default_agent_avatar_url();
     }
     ?>
     <?php

@@ -72,6 +72,7 @@ function vj_chat_admin_enqueue_scripts($hook)
 
     wp_localize_script('vj-chat-admin-script', 'vjChatAdminData', array(
         'defaultIcon' => vj_chat_get_default_icon_url(),
+        'defaultAvatar' => vj_chat_get_default_agent_avatar_url(),
         'uploaderTitle' => __('Select Chat Icon', 'vj-chat-order'),
         'uploaderButton' => __('Use This Icon', 'vj-chat-order'),
         'activeTab' => vj_chat_get_user_active_tab(),
@@ -302,6 +303,20 @@ function vj_chat_register_settings_init()
             return $float;
         },
         'default' => 0.25
+    ));
+
+    register_setting('vj_chat_settings_group', 'vj_chat_chat_widget_avatar_scale', array(
+        'sanitize_callback' => function ($val) {
+            $int = absint($val);
+            if ($int < 40) {
+                $int = 40;
+            }
+            if ($int > 100) {
+                $int = 100;
+            }
+            return $int;
+        },
+        'default' => 100
     ));
 
     register_setting('vj_chat_settings_group', 'vj_chat_chat_agent_name', array(
@@ -788,7 +803,7 @@ function vj_chat_chat_agent_role_field_callback()
 function vj_chat_chat_agent_avatar_field_callback()
 {
     $value = get_option('vj_chat_chat_agent_avatar', '');
-    $fallback = vj_chat_get_default_icon_url();
+    $fallback = vj_chat_get_default_agent_avatar_url();
     $preview = !empty($value) ? $value : $fallback;
     ?>
     <div class="vj-chat-avatar-upload-wrap">
@@ -1058,6 +1073,13 @@ function vj_chat_chat_widget_overlay_opacity_field_callback()
     $value = get_option('vj_chat_chat_widget_overlay_opacity', 0.25);
     echo '<input type="number" step="0.05" min="0" max="1" name="vj_chat_chat_widget_overlay_opacity" value="' . esc_attr($value) . '" style="width: 80px;">';
     echo '<p class="description">' . __('Overlay opacity (0 to 1). Default: 0.25', 'vj-chat-order') . '</p>';
+}
+
+function vj_chat_chat_widget_avatar_scale_field_callback()
+{
+    $value = absint(get_option('vj_chat_chat_widget_avatar_scale', 100));
+    echo '<input type="number" min="40" max="100" name="vj_chat_chat_widget_avatar_scale" value="' . esc_attr($value) . '" style="width: 80px;"> %';
+    echo '<p class="description">' . __('Avatar image fill inside the circle. 100% fills full circle, 60% gives smaller icon look.', 'vj-chat-order') . '</p>';
 }
 
 function vj_chat_chat_placement_mode_callback()
@@ -1575,8 +1597,8 @@ function vj_chat_render_settings_page()
     $chat_compact_size = absint(get_option('vj_chat_chat_compact_size', 44));
     $chat_compact_icon_size = absint(get_option('vj_chat_chat_compact_icon_size', 24));
     $agent_avatar = get_option('vj_chat_chat_agent_avatar', '');
-    if (empty($agent_avatar)) {
-        $agent_avatar = vj_chat_get_default_icon_url();
+    if (empty($agent_avatar) || $agent_avatar === vj_chat_get_default_icon_url()) {
+        $agent_avatar = vj_chat_get_default_agent_avatar_url();
     }
     $widget_title = get_option('vj_chat_chat_widget_title', 'Start a Conversation');
     $widget_status = get_option('vj_chat_chat_widget_status', 'Typically replies within a day');
@@ -1597,6 +1619,13 @@ function vj_chat_render_settings_page()
     $widget_close_bg = get_option('vj_chat_chat_widget_close_bg', '#25D366');
     $widget_close_text = get_option('vj_chat_chat_widget_close_text', '#ffffff');
     $widget_overlay_opacity = floatval(get_option('vj_chat_chat_widget_overlay_opacity', 0.25));
+    $widget_avatar_scale = absint(get_option('vj_chat_chat_widget_avatar_scale', 100));
+    if ($widget_avatar_scale < 40) {
+        $widget_avatar_scale = 40;
+    }
+    if ($widget_avatar_scale > 100) {
+        $widget_avatar_scale = 100;
+    }
     if ($widget_overlay_opacity < 0) {
         $widget_overlay_opacity = 0;
     }
@@ -1869,6 +1898,7 @@ function vj_chat_render_settings_page()
                             vj_chat_render_field_row(__('CTA Text Color', 'vj-chat-order'), 'vj_chat_chat_widget_cta_text_field_callback');
                             vj_chat_render_field_row(__('Close Button Background', 'vj-chat-order'), 'vj_chat_chat_widget_close_bg_field_callback');
                             vj_chat_render_field_row(__('Close Icon Color', 'vj-chat-order'), 'vj_chat_chat_widget_close_text_field_callback');
+                            vj_chat_render_field_row(__('Avatar Image Size', 'vj-chat-order'), 'vj_chat_chat_widget_avatar_scale_field_callback');
                             vj_chat_render_field_row(__('Overlay Opacity', 'vj-chat-order'), 'vj_chat_chat_widget_overlay_opacity_field_callback');
                             ?>
                         </table>
@@ -1960,7 +1990,7 @@ function vj_chat_render_settings_page()
                             <div class="vj-chat-preview-widget-header" style="background-color: <?php echo esc_attr($widget_header_bg); ?>; color: <?php echo esc_attr($widget_header_text); ?>;">
                                 <div class="vj-chat-preview-widget-header-main">
                                     <span class="vj-chat-preview-widget-avatar">
-                                        <img src="<?php echo esc_url($agent_avatar); ?>" alt="">
+                                        <img src="<?php echo esc_url($agent_avatar); ?>" alt="" style="width: <?php echo esc_attr($widget_avatar_scale); ?>%; height: <?php echo esc_attr($widget_avatar_scale); ?>%;">
                                     </span>
                                     <div class="vj-chat-preview-widget-header-text">
                                         <div class="vj-chat-preview-widget-title"><?php echo esc_html($widget_title); ?></div>
