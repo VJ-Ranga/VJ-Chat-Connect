@@ -94,6 +94,8 @@ WooCommerce order features now default to disabled on fresh installations:
 
 Existing saved values are not overwritten. Existing sites with the option enabled will continue to show the WooCommerce warning until the setting is disabled or WooCommerce is activated.
 
+On every settings save, the server now checks whether WooCommerce is active. If it is inactive, the WooCommerce option is forced to `0` and an enable attempt displays a clear requirement message. The admin checkbox is disabled and submits a hidden `0` value so old enabled values are also cleared when the settings form is saved.
+
 ## Required Admin Note
 
 The settings page now displays:
@@ -125,7 +127,7 @@ These should be handled one at a time with separate verification:
 1. Whitelist every select setting instead of relying on `sanitize_text_field()`.
 2. Add `noopener,noreferrer` to WhatsApp links opened in new windows.
 3. Restrict custom icon and avatar URLs to approved protocols, at minimum `http` and `https`.
-4. Keep WooCommerce optional, but improve the admin warning if needed. Do not add a mandatory `Requires Plugins: woocommerce` header because chat-only use must continue working.
+4. Completed: keep WooCommerce optional, force the setting off when inactive, and show a clear requirement message. Do not add a mandatory `Requires Plugins: woocommerce` header because chat-only use must continue working.
 5. Display the configured agent role in the frontend widget.
 6. Expand automated tests for the new settings sanitizers and existing-number compatibility.
 7. Add a coding-standard configuration if the project wants automated PHP style checks.

@@ -387,7 +387,7 @@ function vj_chat_register_settings_init()
 
     // WooCommerce Order Settings
     register_setting('vj_chat_settings_group', 'vj_chat_enable_woo', array(
-        'sanitize_callback' => 'absint',
+        'sanitize_callback' => 'vj_chat_sanitize_enable_woo',
         'default' => 0
     ));
 
@@ -554,6 +554,22 @@ function vj_chat_sanitize_phone($input)
         return get_option('vj_chat_phone_number');
     }
     return $sanitized;
+}
+
+function vj_chat_sanitize_enable_woo($input)
+{
+    if (!vj_chat_is_woocommerce_active()) {
+        if (absint($input)) {
+            add_settings_error(
+                'vj_chat_enable_woo',
+                'vj_chat_woocommerce_required',
+                __('WooCommerce must be installed and activated before WooCommerce order features can be enabled.', 'vj-chat-order')
+            );
+        }
+        return 0;
+    }
+
+    return absint($input) ? 1 : 0;
 }
 
 function vj_chat_sanitize_chat_country($input)
@@ -1029,9 +1045,10 @@ function vj_chat_chat_icon_bg_color_field_callback()
 
 function vj_chat_enable_woo_field_callback()
 {
-    $value = get_option('vj_chat_enable_woo', 1);
+    $value = get_option('vj_chat_enable_woo', 0);
     $woo_active = function_exists('vj_chat_is_woocommerce_active') && vj_chat_is_woocommerce_active();
-    echo '<label><input type="checkbox" id="vj_chat_enable_woo" name="vj_chat_enable_woo" value="1" ' . checked(1, $value, false) . '> ' . esc_html__('Enable WooCommerce Order Button', 'vj-chat-order') . '</label>';
+    echo '<input type="hidden" name="vj_chat_enable_woo" value="0">';
+    echo '<label><input type="checkbox" id="vj_chat_enable_woo" name="vj_chat_enable_woo" value="1" ' . checked(1, $value, false) . disabled(!$woo_active, true, false) . '> ' . esc_html__('Enable WooCommerce Order Button', 'vj-chat-order') . '</label>';
     if (!$woo_active) {
         echo '<p class="description">' . __('WooCommerce is not active. You can disable this or activate WooCommerce to use order features.', 'vj-chat-order') . '</p>';
     } else {
