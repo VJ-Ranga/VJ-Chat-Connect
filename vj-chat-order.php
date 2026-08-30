@@ -328,7 +328,7 @@ function vj_chat_activate()
         'vj_chat_chat_widget_overlay_opacity' => 0.25,
         'vj_chat_chat_widget_avatar_scale' => 100,
         // WooCommerce Order settings
-        'vj_chat_enable_woo' => 1,
+        'vj_chat_enable_woo' => 0,
         // General settings
         'vj_chat_phone_number' => '947000000000',
         'vj_chat_button_text' => __('Order via WhatsApp', 'vj-chat-order'),

@@ -388,7 +388,7 @@ function vj_chat_register_settings_init()
     // WooCommerce Order Settings
     register_setting('vj_chat_settings_group', 'vj_chat_enable_woo', array(
         'sanitize_callback' => 'absint',
-        'default' => 1
+        'default' => 0
     ));
 
     register_setting('vj_chat_settings_group', 'vj_chat_button_text', array(
