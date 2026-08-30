@@ -8,6 +8,8 @@
 
 Adds a customizable **"Order via Chat App"** button to your WooCommerce product pages, allowing customers to send order details directly to your WhatsApp number.
 
+The chat button and widget also work on sites without WooCommerce. In **Settings > Chat Connect**, select the country and enter the national WhatsApp number without the country code. For Sri Lanka, select **Sri Lanka (+94)** and enter `771234567`. The plugin validates number format only; it does not verify WhatsApp registration.
+
 ---
 
 ## 🚀 Features

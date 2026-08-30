@@ -100,8 +100,13 @@ function vj_chat_register_settings_init()
     ));
 
     register_setting('vj_chat_settings_group', 'vj_chat_chat_phone', array(
-        'sanitize_callback' => 'vj_chat_sanitize_phone',
+        'sanitize_callback' => 'vj_chat_sanitize_chat_phone',
         'default' => '947000000000'
+    ));
+
+    register_setting('vj_chat_settings_group', 'vj_chat_chat_country', array(
+        'sanitize_callback' => 'vj_chat_sanitize_chat_country',
+        'default' => 'LK'
     ));
 
     register_setting('vj_chat_settings_group', 'vj_chat_chat_button_text', array(
@@ -551,6 +556,23 @@ function vj_chat_sanitize_phone($input)
     return $sanitized;
 }
 
+function vj_chat_sanitize_chat_country($input)
+{
+    $country_code = strtoupper(preg_replace('/[^A-Za-z]/', '', (string) $input));
+    return vj_chat_get_country($country_code) ? $country_code : get_option('vj_chat_chat_country', 'LK');
+}
+
+function vj_chat_sanitize_chat_phone($input)
+{
+    $country_code = isset($_POST['vj_chat_chat_country']) ? $_POST['vj_chat_chat_country'] : get_option('vj_chat_chat_country', 'LK');
+    $result = vj_chat_validate_phone_for_country($input, $country_code);
+    if (!$result['valid']) {
+        add_settings_error('vj_chat_chat_phone', 'vj_chat_chat_phone_error', $result['error']);
+        return get_option('vj_chat_chat_phone', '947000000000');
+    }
+    return $result['phone'];
+}
+
 /**
  * General field callbacks
  */
@@ -642,9 +664,25 @@ function vj_chat_chat_agent_avatar_field_callback()
 
 function vj_chat_chat_phone_field_callback()
 {
-    $value = get_option('vj_chat_chat_phone', '947000000000');
-    echo '<input type="text" name="vj_chat_chat_phone" value="' . esc_attr($value) . '" class="regular-text" placeholder="947000000000">';
-    echo '<p class="description">' . __('WhatsApp number with country code (no + or spaces).', 'vj-chat-order') . '</p>';
+    $country_code = get_option('vj_chat_chat_country', 'LK');
+    $country = vj_chat_get_country($country_code);
+    if (!$country) {
+        $country_code = 'LK';
+        $country = vj_chat_get_country($country_code);
+    }
+    $international = get_option('vj_chat_chat_phone', '947000000000');
+    $national = strpos($international, $country['dial_code']) === 0 ? substr($international, strlen($country['dial_code'])) : $international;
+    $countries = vj_chat_get_country_data();
+    echo '<input type="search" id="vj_chat_chat_country_search" class="regular-text" placeholder="' . esc_attr__('Search country or code', 'vj-chat-order') . '" aria-label="' . esc_attr__('Search country or code', 'vj-chat-order') . '"> ';
+    echo '<select name="vj_chat_chat_country" id="vj_chat_chat_country" aria-label="' . esc_attr__('Country', 'vj-chat-order') . '">';
+    foreach ($countries as $code => $data) {
+        echo '<option value="' . esc_attr($code) . '" data-dial-code="' . esc_attr($data['dial_code']) . '" data-min-length="' . esc_attr($data['min_length']) . '" data-max-length="' . esc_attr($data['max_length']) . '" ' . selected($country_code, $code, false) . '>' . esc_html($data['flag'] . ' ' . $data['name'] . ' (+' . $data['dial_code'] . ')') . '</option>';
+    }
+    echo '</select> ';
+    echo '<span id="vj_chat_chat_country_code">+' . esc_html($country['dial_code']) . '</span> ';
+    echo '<input type="text" name="vj_chat_chat_phone" id="vj_chat_chat_phone" value="' . esc_attr($national) . '" class="regular-text" inputmode="tel" autocomplete="tel-national">';
+    echo '<p class="description">' . esc_html__('Select your country and enter your WhatsApp number without the country code. Example for Sri Lanka: select Sri Lanka (+94), then enter 771234567.', 'vj-chat-order') . '</p>';
+    echo '<p id="vj_chat_chat_phone_feedback" class="description" role="status" aria-live="polite"></p>';
 }
 
 function vj_chat_chat_message_field_callback()

@@ -49,6 +49,39 @@ jQuery(document).ready(function ($) {
     // ==========================================
     // Media Uploader Logic
     // ==========================================
+    var countrySelect = $('#vj_chat_chat_country');
+    var countrySearch = $('#vj_chat_chat_country_search');
+    var phoneField = $('#vj_chat_chat_phone');
+    var phoneFeedback = $('#vj_chat_chat_phone_feedback');
+
+    function updatePhoneValidation() {
+        var option = countrySelect.find('option:selected');
+        var value = (phoneField.val() || '').replace(/[\s().-]+/g, '').replace(/^\+/, '');
+        var min = parseInt(option.data('min-length'), 10);
+        var max = parseInt(option.data('max-length'), 10);
+        $('#vj_chat_chat_country_code').text('+' + (option.data('dial-code') || ''));
+        if (!value) {
+            phoneFeedback.text('');
+            return;
+        }
+        if (!/^\d+$/.test(value) || value.length < min || value.length > max) {
+            phoneFeedback.text('Enter a valid phone number for the selected country.').css('color', '#b32d2e');
+        } else {
+            phoneFeedback.text('Number format looks valid.').css('color', '#008a20');
+        }
+    }
+
+    countrySearch.on('input', function () {
+        var query = ($(this).val() || '').toLowerCase();
+        countrySelect.find('option').each(function () {
+            var option = $(this);
+            option.prop('hidden', query !== '' && option.text().toLowerCase().indexOf(query) === -1);
+        });
+    });
+    countrySelect.on('change', updatePhoneValidation);
+    phoneField.on('input', updatePhoneValidation);
+    updatePhoneValidation();
+
     var defaultIcon = vjChatAdminData.defaultIcon;
     var defaultAvatar = vjChatAdminData.defaultAvatar || defaultIcon;
     var mediaUploader;

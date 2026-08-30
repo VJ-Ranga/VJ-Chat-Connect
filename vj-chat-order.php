@@ -27,6 +27,9 @@ define('VJ_CHAT_VERSION', '2.1.0');
 define('VJ_CHAT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('VJ_CHAT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+require_once VJ_CHAT_PLUGIN_DIR . 'inc/country-data.php';
+require_once VJ_CHAT_PLUGIN_DIR . 'inc/phone-validation.php';
+
 /**
  * Check if WooCommerce is active
  */
@@ -277,6 +280,7 @@ function vj_chat_activate()
         // Chat settings
         'vj_chat_enable_chat' => 1,
         'vj_chat_chat_phone' => '947000000000',
+        'vj_chat_chat_country' => 'LK',
         'vj_chat_chat_button_text' => __('Need Help? Chat with us', 'vj-chat-order'),
         'vj_chat_chat_message' => __('Hi! I need help.', 'vj-chat-order'),
         'vj_chat_chat_agent_name' => __('Customer Support', 'vj-chat-order'),

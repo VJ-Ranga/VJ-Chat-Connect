@@ -10,7 +10,7 @@ License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Plugin URI: https://github.com/VJ-Ranga/VJ-Chat-Connect
 
-Adds a "Order via WhatsApp" button to WooCommerce products, allowing customers to send order details directly to your WhatsApp number.
+Adds a "Order via WhatsApp" button to WooCommerce products, allowing customers to send order details directly to your WhatsApp number. The chat button and widget also work without WooCommerce. Select the country in Settings > Chat Connect and enter the national WhatsApp number without the country code. For Sri Lanka, select Sri Lanka (+94) and enter 771234567. Validation checks number format only and does not verify WhatsApp registration.
 
 == Description ==
 

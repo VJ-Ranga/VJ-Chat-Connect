@@ -21,6 +21,7 @@ $vj_chat_options = array(
     // General Settings
     'vj_chat_enable_chat',
     'vj_chat_chat_phone',
+    'vj_chat_chat_country',
     'vj_chat_chat_button_text',
     'vj_chat_chat_message',
     'vj_chat_chat_agent_name',
