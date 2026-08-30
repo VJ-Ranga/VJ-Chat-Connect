@@ -85,6 +85,15 @@ instead of:
 
 This is important for installations that use the plugin without WooCommerce.
 
+### WooCommerce default
+
+WooCommerce order features now default to disabled on fresh installations:
+
+- Activation default: `vj_chat_enable_woo => 0`
+- Settings API default: `vj_chat_enable_woo => 0`
+
+Existing saved values are not overwritten. Existing sites with the option enabled will continue to show the WooCommerce warning until the setting is disabled or WooCommerce is activated.
+
 ## Required Admin Note
 
 The settings page now displays:
@@ -116,7 +125,7 @@ These should be handled one at a time with separate verification:
 1. Whitelist every select setting instead of relying on `sanitize_text_field()`.
 2. Add `noopener,noreferrer` to WhatsApp links opened in new windows.
 3. Restrict custom icon and avatar URLs to approved protocols, at minimum `http` and `https`.
-4. Keep WooCommerce optional, but improve the admin warning and documentation. Do not add a mandatory `Requires Plugins: woocommerce` header because chat-only use must continue working.
+4. Keep WooCommerce optional, but improve the admin warning if needed. Do not add a mandatory `Requires Plugins: woocommerce` header because chat-only use must continue working.
 5. Display the configured agent role in the frontend widget.
 6. Expand automated tests for the new settings sanitizers and existing-number compatibility.
 7. Add a coding-standard configuration if the project wants automated PHP style checks.
