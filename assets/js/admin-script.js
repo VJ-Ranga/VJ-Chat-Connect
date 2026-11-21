@@ -6,16 +6,31 @@ jQuery(document).ready(function ($) {
     // Tab Switching Logic
     // ==========================================
     // Check for saved tab (Server-Side)
-    var activeTab = vjChatAdminData.activeTab || 'general';
+    var activeTab = vjChatAdminData.activeTab || 'chat';
 
     // Initialize: Set the saved tab as active
     function initializeTabs() {
-        $('.vj-chat-tab-btn').removeClass('active');
+        $('.vj-chat-tab-btn').removeClass('active nav-tab-active').attr({ 'aria-selected': 'false', tabindex: '-1' });
         $('.vj-chat-tab-panel').removeClass('active');
 
-        $('.vj-chat-tab-btn[data-tab="' + activeTab + '"]').addClass('active');
+        $('.vj-chat-tab-btn[data-tab="' + activeTab + '"]').addClass('active nav-tab-active').attr({ 'aria-selected': 'true', tabindex: '0' });
         $('#tab-' + activeTab).addClass('active');
     }
+
+    // Arrow keys move between tabs (WAI-ARIA tabs pattern).
+    $('.vj-chat-tabs-nav').on('keydown', '.vj-chat-tab-btn', function (e) {
+        var tabs = $('.vj-chat-tab-btn');
+        var index = tabs.index(this);
+        var next = null;
+        if (e.key === 'ArrowRight') { next = tabs.eq((index + 1) % tabs.length); }
+        if (e.key === 'ArrowLeft') { next = tabs.eq((index - 1 + tabs.length) % tabs.length); }
+        if (e.key === 'Home') { next = tabs.first(); }
+        if (e.key === 'End') { next = tabs.last(); }
+        if (next) {
+            e.preventDefault();
+            next.trigger('focus').trigger('click');
+        }
+    });
 
     // Initialize on page load
     initializeTabs();
@@ -54,29 +69,84 @@ jQuery(document).ready(function ($) {
     var phoneField = $('#vj_chat_chat_phone');
     var phoneFeedback = $('#vj_chat_chat_phone_feedback');
 
-    function updatePhoneValidation() {
-        var option = countrySelect.find('option:selected');
-        var value = (phoneField.val() || '').replace(/[\s().-]+/g, '').replace(/^\+/, '');
+    // Mirrors vj_chat_validate_phone_for_country() in inc/phone-validation.php.
+    function normalizePhone(raw, option) {
+        var dial = String(option.data('dial-code') || '');
         var min = parseInt(option.data('min-length'), 10);
         var max = parseInt(option.data('max-length'), 10);
+        var pattern = new RegExp('^(?:' + (option.data('pattern') || '\\d+') + ')$');
+        raw = $.trim(raw || '');
+        var digits = raw.replace(/[\s().\-\/]+/g, '');
+        if (!/^\+?\d+$/.test(digits)) {
+            return null;
+        }
+        var intl = digits.charAt(0) === '+';
+        digits = digits.replace(/^\+/, '');
+        if (!intl && digits.indexOf('00') === 0) {
+            digits = digits.slice(2);
+            intl = true;
+        }
+        var candidates = [];
+        if (digits.indexOf(dial) === 0) {
+            candidates.push(digits.slice(dial.length));
+        }
+        if (!intl) {
+            candidates.push(digits);
+        }
+        for (var i = 0; i < candidates.length; i++) {
+            var tries = [candidates[i], candidates[i].replace(/^0+/, '')];
+            for (var j = 0; j < tries.length; j++) {
+                var n = tries[j];
+                if (n && n.length >= min && n.length <= max && (dial + n).length <= 15 && pattern.test(n)) {
+                    return dial + n;
+                }
+            }
+        }
+        return null;
+    }
+
+    function updatePhoneValidation() {
+        var option = countrySelect.find('option:selected');
+        var value = phoneField.val() || '';
         $('#vj_chat_chat_country_code').text('+' + (option.data('dial-code') || ''));
-        if (!value) {
-            phoneFeedback.text('');
+        if (!$.trim(value)) {
+            phoneFeedback.text('').removeClass('vj-chat-feedback-ok vj-chat-feedback-error');
             return;
         }
-        if (!/^\d+$/.test(value) || value.length < min || value.length > max) {
-            phoneFeedback.text('Enter a valid phone number for the selected country.').css('color', '#b32d2e');
+        var phone = normalizePhone(value, option);
+        if (phone) {
+            phoneFeedback.text((vjChatAdminData.i18n && vjChatAdminData.i18n.phoneValid ? vjChatAdminData.i18n.phoneValid : 'Valid. WhatsApp link will use:') + ' +' + phone)
+                .removeClass('vj-chat-feedback-error').addClass('vj-chat-feedback-ok');
         } else {
-            phoneFeedback.text('Number format looks valid.').css('color', '#008a20');
+            phoneFeedback.text(vjChatAdminData.i18n && vjChatAdminData.i18n.phoneInvalid ? vjChatAdminData.i18n.phoneInvalid : 'This number does not look valid for the selected country.')
+                .removeClass('vj-chat-feedback-ok').addClass('vj-chat-feedback-error');
         }
     }
 
+    // Filter the country list. Safari ignores hidden <option>s, so also
+    // select the first match so typing "sri" or "94" picks the country.
     countrySearch.on('input', function () {
-        var query = ($(this).val() || '').toLowerCase();
+        var query = $.trim($(this).val() || '').toLowerCase().replace(/^\+/, '');
+        var firstMatch = null;
         countrySelect.find('option').each(function () {
             var option = $(this);
-            option.prop('hidden', query !== '' && option.text().toLowerCase().indexOf(query) === -1);
+            var text = option.text().toLowerCase();
+            var matches = query === '' || text.indexOf(query) !== -1 || String(option.data('dial-code')) === query;
+            option.prop('hidden', !matches);
+            if (matches && !firstMatch) {
+                firstMatch = option;
+            }
         });
+        if (query !== '' && firstMatch && !firstMatch.is(':selected')) {
+            countrySelect.val(firstMatch.val()).trigger('change');
+        }
+    });
+    // Enter in the search box must not submit the whole settings form.
+    countrySearch.on('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            phoneField.trigger('focus');
+        }
     });
     countrySelect.on('change', updatePhoneValidation);
     phoneField.on('input', updatePhoneValidation);
@@ -181,26 +251,30 @@ jQuery(document).ready(function ($) {
     });
 
     // ==========================================
-    // Toast Notifications
+    // Chat on/off: hide chat settings and chat preview when chat is disabled
     // ==========================================
+    function toggleChatSettings() {
+        var enabled = $('#vj_chat_enable_chat').is(':checked');
+        $('#vj-chat-chat-settings').prop('hidden', !enabled);
+        $('#vj-chat-chat-disabled-note').prop('hidden', enabled);
+        $('.vj-chat-preview-chat-button, .vj-chat-preview-chat-widget').toggleClass('vj-chat-preview-off', !enabled);
+    }
+    function toggleWooPreview() {
+        var field = $('#vj_chat_enable_woo');
+        var enabled = field.length ? field.is(':checked') && !field.is(':disabled') : false;
+        $('.vj-chat-preview-woo-full, .vj-chat-preview-woo-compact').toggleClass('vj-chat-preview-off', !enabled);
+    }
 
-    // Show Toasts with Animation
-    setTimeout(function () {
-        $('.vj-chat-toast').addClass('show');
-    }, 100);
+    function updatePreviewEmptyState() {
+        var anyVisible = $('.vj-chat-preview-section').not('.vj-chat-preview-off').length > 0;
+        $('#vj-chat-preview-empty').prop('hidden', anyVisible);
+    }
 
-    // Auto Dismiss after 5 seconds
-    setTimeout(function () {
-        $('.vj-chat-toast').removeClass('show');
-        setTimeout(function () {
-            $('.vj-chat-toast-container').remove();
-        }, 300);
-    }, 5000);
-
-    // Manual Dismiss
-    $('.vj-chat-toast-dismiss').on('click', function () {
-        $(this).closest('.vj-chat-toast').removeClass('show');
-    });
+    $('#vj_chat_enable_chat').on('change', function () { toggleChatSettings(); updatePreviewEmptyState(); });
+    $('#vj_chat_enable_woo').on('change', function () { toggleWooPreview(); updatePreviewEmptyState(); });
+    toggleChatSettings();
+    toggleWooPreview();
+    updatePreviewEmptyState();
 
     // ==========================================
     // Live Preview - Button Style Toggles

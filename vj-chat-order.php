@@ -3,7 +3,7 @@
  * Plugin Name: VJ Chat Connect
  * Plugin URI: https://github.com/VJ-Ranga/VJ-Chat-Connect
  * Description: Adds a WooCommerce order button and a simple WhatsApp chat button via shortcode, allowing customers to contact you directly.
- * Version: 2.1.1
+ * Version: 2.2.0
  * Author: VJ Ranga
  * Author URI: https://vjranga.com/
  * Text Domain: vj-chat-order
@@ -38,7 +38,7 @@ if (defined('VJ_CHAT_VERSION') || function_exists('vj_chat_get_user_active_tab')
 }
 
 // Define plugin constants
-define('VJ_CHAT_VERSION', '2.1.1');
+define('VJ_CHAT_VERSION', '2.2.0');
 define('VJ_CHAT_PLUGIN_FILE', __FILE__);
 define('VJ_CHAT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('VJ_CHAT_PLUGIN_URL', plugin_dir_url(__FILE__));

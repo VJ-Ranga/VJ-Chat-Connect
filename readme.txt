@@ -5,7 +5,7 @@ Tags: woocommerce, whatsapp, order, button, chat
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 2.1.1
+Stable tag: 2.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Plugin URI: https://github.com/VJ-Ranga/VJ-Chat-Connect
@@ -107,6 +107,16 @@ Yes, you can upload your own icon or use emojis. Use Win + . (Windows) or Cmd + 
 9. Compact button on product page (frontend)
 
 == Changelog ==
+
+= 2.2.0 =
+* Fix: Chat phone number was rejected unless typed without the leading 0 or country code. Any normal format now works (077 123 4567, 771234567, +94 77 123 4567, 0094...), with a live check that shows the final WhatsApp number.
+* Fix: Turning off "Enable Chat" now hides the chat settings and chat preview, so it is clear the chat button is off.
+* Fix: Error messages no longer disappear after 5 seconds; settings use standard WordPress notices.
+* Fix: Pressing Enter in the country search no longer submits the form, and typing a country name or code selects it (also in Safari).
+* Fix: Compact button preview used the wrong background color.
+* Fix: WhatsApp links open with noopener and a digits-only phone number.
+* UI: Settings page redesigned to match the WordPress admin (core tabs, buttons, inputs, notices), with lighter preview panel and better mobile layout.
+* Accessibility: Field labels linked to their inputs, keyboard-navigable tabs with ARIA roles.
 
 = 2.1.1 =
 * Fix: "Plugin could not be activated because it triggered a fatal error" (Cannot redeclare vj_chat_get_user_active_tab()) when VJ Chat Order for WooCommerce or another copy is already active. The plugin now stays inactive and shows an admin notice instead.

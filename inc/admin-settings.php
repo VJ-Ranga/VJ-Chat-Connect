@@ -77,7 +77,11 @@ function vj_chat_admin_enqueue_scripts($hook)
         'uploaderButton' => __('Use This Icon', 'vj-chat-order'),
         'activeTab' => vj_chat_get_user_active_tab(),
         'ajaxUrl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('vj_chat_tab_nonce')
+        'nonce' => wp_create_nonce('vj_chat_tab_nonce'),
+        'i18n' => array(
+            'phoneValid' => __('Valid. WhatsApp link will use:', 'vj-chat-order'),
+            'phoneInvalid' => __('This number does not look valid for the selected country.', 'vj-chat-order'),
+        ),
     ));
 }
 add_action('admin_enqueue_scripts', 'vj_chat_admin_enqueue_scripts');
@@ -580,7 +584,9 @@ function vj_chat_sanitize_chat_country($input)
 
 function vj_chat_sanitize_chat_phone($input)
 {
-    $country_code = isset($_POST['vj_chat_chat_country']) ? $_POST['vj_chat_chat_country'] : get_option('vj_chat_chat_country', 'LK');
+    // options.php has already verified the settings nonce before sanitize callbacks run.
+    // phpcs:ignore WordPress.Security.NonceVerification.Missing
+    $country_code = isset($_POST['vj_chat_chat_country']) ? sanitize_text_field(wp_unslash($_POST['vj_chat_chat_country'])) : get_option('vj_chat_chat_country', 'LK');
     $result = vj_chat_validate_phone_for_country($input, $country_code);
     if (!$result['valid']) {
         add_settings_error('vj_chat_chat_phone', 'vj_chat_chat_phone_error', $result['error']);
@@ -692,12 +698,12 @@ function vj_chat_chat_phone_field_callback()
     echo '<input type="search" id="vj_chat_chat_country_search" class="regular-text" placeholder="' . esc_attr__('Search country or code', 'vj-chat-order') . '" aria-label="' . esc_attr__('Search country or code', 'vj-chat-order') . '"> ';
     echo '<select name="vj_chat_chat_country" id="vj_chat_chat_country" aria-label="' . esc_attr__('Country', 'vj-chat-order') . '">';
     foreach ($countries as $code => $data) {
-        echo '<option value="' . esc_attr($code) . '" data-dial-code="' . esc_attr($data['dial_code']) . '" data-min-length="' . esc_attr($data['min_length']) . '" data-max-length="' . esc_attr($data['max_length']) . '" ' . selected($country_code, $code, false) . '>' . esc_html($data['flag'] . ' ' . $data['name'] . ' (+' . $data['dial_code'] . ')') . '</option>';
+        echo '<option value="' . esc_attr($code) . '" data-dial-code="' . esc_attr($data['dial_code']) . '" data-min-length="' . esc_attr($data['min_length']) . '" data-max-length="' . esc_attr($data['max_length']) . '" data-pattern="' . esc_attr($data['pattern']) . '" ' . selected($country_code, $code, false) . '>' . esc_html($data['flag'] . ' ' . $data['name'] . ' (+' . $data['dial_code'] . ')') . '</option>';
     }
     echo '</select> ';
     echo '<span id="vj_chat_chat_country_code">+' . esc_html($country['dial_code']) . '</span> ';
     echo '<input type="text" name="vj_chat_chat_phone" id="vj_chat_chat_phone" value="' . esc_attr($national) . '" class="regular-text" inputmode="tel" autocomplete="tel-national">';
-    echo '<p class="description">' . esc_html__('Select your country and enter your WhatsApp number without the country code. Example for Sri Lanka: select Sri Lanka (+94), then enter 771234567.', 'vj-chat-order') . '</p>';
+    echo '<p class="description">' . esc_html__('Pick your country, then type your WhatsApp number in any format. For Sri Lanka, 077 123 4567, 771234567 and +94 77 123 4567 all work.', 'vj-chat-order') . '</p>';
     echo '<p id="vj_chat_chat_phone_feedback" class="description" role="status" aria-live="polite"></p>';
 }
 
@@ -1395,10 +1401,32 @@ function vj_chat_padding_field_callback()
  */
 function vj_chat_render_field_row($label, $callback)
 {
+    ob_start();
+    call_user_func($callback);
+    $field = ob_get_clean();
+
+    // Give the first form control an id (from its name) if it has none, so the
+    // row label can point at it with <label for> for screen readers.
+    $label_for = '';
+    if (preg_match('/<(input|select|textarea)\b(?![^>]*type="hidden")[^>]*>/i', $field, $m)) {
+        $tag = $m[0];
+        if (preg_match('/\sid="([^"]+)"/', $tag, $id)) {
+            $label_for = $id[1];
+        } elseif (preg_match('/\sname="([^"]+)"/', $tag, $name)) {
+            $label_for = sanitize_html_class(str_replace(array('[', ']'), '_', $name[1]));
+            $field = str_replace($tag, preg_replace('/^<(\w+)/', '<$1 id="' . esc_attr($label_for) . '"', $tag), $field);
+        }
+    }
     ?>
     <tr>
-        <th scope="row"><?php echo esc_html($label); ?></th>
-        <td><?php call_user_func($callback); ?></td>
+        <th scope="row">
+            <?php if ($label_for) : ?>
+                <label for="<?php echo esc_attr($label_for); ?>"><?php echo esc_html($label); ?></label>
+            <?php else : ?>
+                <?php echo esc_html($label); ?>
+            <?php endif; ?>
+        </th>
+        <td><?php echo $field; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- field callbacks escape their own output. ?></td>
     </tr>
     <?php
 }
@@ -1516,90 +1544,49 @@ function vj_chat_render_settings_page()
     ?>
     <div class="wrap">
         <div class="vj-chat-settings-wrap">
-        <?php
-        // Toast Notifications Logic
-        $vj_chat_errors = get_settings_errors();
-        $show_success_toast = isset($_GET['settings-updated']) && $_GET['settings-updated'] === 'true';
-        $toast_errors = array();
-
-        if (!empty($vj_chat_errors)) {
-            foreach ($vj_chat_errors as $error) {
-                $is_success = in_array($error['type'], array('success', 'updated'), true);
-                if ($is_success && $show_success_toast) {
-                    continue;
-                }
-                $toast_errors[] = $error;
-            }
-        }
-
-        if ($show_success_toast || !empty($toast_errors)) {
-            ?>
-            <div class="vj-chat-toast-container">
-                <?php if ($show_success_toast) : ?>
-                    <div class="vj-chat-toast show">
-                        <div class="vj-chat-toast-icon">✅</div>
-                        <div class="vj-chat-toast-message"><?php echo esc_html__('Settings saved.', 'vj-chat-order'); ?></div>
-                        <button type="button" class="vj-chat-toast-dismiss">&times;</button>
-                    </div>
-                <?php endif; ?>
-                <?php
-                $seen_codes = array();
-                foreach ($toast_errors as $error) {
-                    if (in_array($error['code'], $seen_codes))
-                        continue;
-                    $seen_codes[] = $error['code'];
-
-                    $type = $error['type'];
-                    $message = $error['message'];
-                    $icon = ($type === 'success' || $type === 'updated') ? '✅' : '⚠️';
-                    $is_error = ($type === 'error') ? 'error' : '';
-                    ?>
-                    <div class="vj-chat-toast <?php echo esc_attr($is_error); ?>">
-                        <div class="vj-chat-toast-icon"><?php echo $icon; ?></div>
-                        <div class="vj-chat-toast-message"><?php echo esc_html($message); ?></div>
-                        <button type="button" class="vj-chat-toast-dismiss">&times;</button>
-                    </div>
-                    <?php
-                }
-                ?>
-            </div>
-            <?php
-        }
-        ?>
-
         <!-- Main Content Area -->
         <div class="vj-chat-main-content">
 
             <!-- Page Header -->
             <div class="vj-chat-page-header">
                 <h1><?php esc_html_e('VJ Chat Connect', 'vj-chat-order'); ?></h1>
-                <p><?php esc_html_e('Configure chat and WooCommerce order buttons', 'vj-chat-order'); ?>
-                </p>
+                <p class="vj-chat-page-subtitle"><?php esc_html_e('WhatsApp chat button and WooCommerce order button.', 'vj-chat-order'); ?></p>
             </div>
+            <hr class="wp-header-end">
 
             <form action="options.php" method="post">
                 <?php settings_fields('vj_chat_settings_group'); ?>
 
                 <!-- Tabs Navigation -->
-                <div class="vj-chat-tabs-nav">
-                    <button type="button" class="vj-chat-tab-btn active" data-tab="chat">
-                        <span class="tab-icon">💬</span> <?php esc_html_e('Chat', 'vj-chat-order'); ?>
+                <nav class="nav-tab-wrapper vj-chat-tabs-nav" role="tablist" aria-label="<?php esc_attr_e('Settings sections', 'vj-chat-order'); ?>">
+                    <button type="button" class="nav-tab vj-chat-tab-btn active nav-tab-active" data-tab="chat" role="tab" id="tab-btn-chat" aria-controls="tab-chat" aria-selected="true">
+                        <span class="dashicons dashicons-format-chat" aria-hidden="true"></span> <?php esc_html_e('Chat', 'vj-chat-order'); ?>
                     </button>
-                    <button type="button" class="vj-chat-tab-btn" data-tab="woocommerce">
-                        <span class="tab-icon">🛒</span> <?php esc_html_e('WooCommerce', 'vj-chat-order'); ?>
+                    <button type="button" class="nav-tab vj-chat-tab-btn" data-tab="woocommerce" role="tab" id="tab-btn-woocommerce" aria-controls="tab-woocommerce" aria-selected="false" tabindex="-1">
+                        <span class="dashicons dashicons-cart" aria-hidden="true"></span> <?php esc_html_e('WooCommerce', 'vj-chat-order'); ?>
                     </button>
-                    <button type="button" class="vj-chat-tab-btn" data-tab="design">
-                        <span class="tab-icon">🎨</span> <?php esc_html_e('Design', 'vj-chat-order'); ?>
+                    <button type="button" class="nav-tab vj-chat-tab-btn" data-tab="design" role="tab" id="tab-btn-design" aria-controls="tab-design" aria-selected="false" tabindex="-1">
+                        <span class="dashicons dashicons-art" aria-hidden="true"></span> <?php esc_html_e('Design', 'vj-chat-order'); ?>
                     </button>
-                </div>
+                </nav>
 
                 <!-- Tabs Content -->
                 <div class="vj-chat-tabs-content">
                     <!-- Chat Tab -->
-                    <div class="vj-chat-tab-panel active" id="tab-chat">
-                        <table class="form-table">
+                    <div class="vj-chat-tab-panel active" id="tab-chat" role="tabpanel" aria-labelledby="tab-btn-chat">
+                        <table class="form-table" role="presentation">
                             <?php
                             vj_chat_render_field_row(__('Enable Chat', 'vj-chat-order'), 'vj_chat_enable_chat_field_callback');
+                            ?>
+                        </table>
+
+                        <p class="vj-chat-disabled-note" id="vj-chat-chat-disabled-note" hidden>
+                            <?php esc_html_e('The chat button is turned off, so it is hidden on your site. Turn on "Enable Chat" to edit its settings.', 'vj-chat-order'); ?>
+                        </p>
+
+                        <div id="vj-chat-chat-settings">
+                        <table class="form-table" role="presentation">
+                            <?php
                             vj_chat_render_field_row(__('Chat Button Text', 'vj-chat-order'), 'vj_chat_chat_button_text_field_callback');
                             vj_chat_render_field_row(__('Chat Button Style', 'vj-chat-order'), 'vj_chat_chat_button_style_field_callback');
                             vj_chat_render_field_row(__('Chat Phone Number', 'vj-chat-order'), 'vj_chat_chat_phone_field_callback');
@@ -1607,12 +1594,11 @@ function vj_chat_render_settings_page()
                             ?>
                         </table>
 
-                        <h3 class="vj-chat-section-title"
-                            style="margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                        <h3 class="vj-chat-section-title">
                             <?php esc_html_e('Chat Placement', 'vj-chat-order'); ?>
                         </h3>
 
-                        <table class="form-table">
+                        <table class="form-table" role="presentation">
                             <?php
                             vj_chat_render_field_row(__('Placement Mode', 'vj-chat-order'), 'vj_chat_chat_placement_mode_callback');
                             vj_chat_render_field_row(__('Floating Position', 'vj-chat-order'), 'vj_chat_chat_floating_position_callback');
@@ -1622,12 +1608,11 @@ function vj_chat_render_settings_page()
                             ?>
                         </table>
 
-                        <h3 class="vj-chat-section-title"
-                            style="margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                        <h3 class="vj-chat-section-title">
                             <?php esc_html_e('Agent Information', 'vj-chat-order'); ?>
                         </h3>
 
-                        <table class="form-table">
+                        <table class="form-table" role="presentation">
                             <?php
                             vj_chat_render_field_row(__('Agent Name', 'vj-chat-order'), 'vj_chat_chat_agent_name_field_callback');
                             vj_chat_render_field_row(__('Agent Role', 'vj-chat-order'), 'vj_chat_chat_agent_role_field_callback');
@@ -1635,12 +1620,11 @@ function vj_chat_render_settings_page()
                             ?>
                         </table>
 
-                        <h3 class="vj-chat-section-title"
-                            style="margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                        <h3 class="vj-chat-section-title">
                             <?php esc_html_e('Chat Widget Content', 'vj-chat-order'); ?>
                         </h3>
 
-                        <table class="form-table">
+                        <table class="form-table" role="presentation">
                             <?php
                             vj_chat_render_field_row(__('Widget Title', 'vj-chat-order'), 'vj_chat_chat_widget_title_field_callback');
                             vj_chat_render_field_row(__('Widget Status Text', 'vj-chat-order'), 'vj_chat_chat_widget_status_field_callback');
@@ -1655,18 +1639,19 @@ function vj_chat_render_settings_page()
                             <code>[vj_chat_order_button mode="chat"]</code>
                             <?php esc_html_e('to place the chat button anywhere.', 'vj-chat-order'); ?>
                         </p>
+                        </div><!-- #vj-chat-chat-settings -->
                     </div>
 
                     <!-- WooCommerce Tab -->
-                    <div class="vj-chat-tab-panel" id="tab-woocommerce">
-                        <table class="form-table">
+                    <div class="vj-chat-tab-panel" id="tab-woocommerce" role="tabpanel" aria-labelledby="tab-btn-woocommerce">
+                        <table class="form-table" role="presentation">
                             <?php
                             vj_chat_render_field_row(__('Enable WooCommerce Order', 'vj-chat-order'), 'vj_chat_enable_woo_field_callback');
                             ?>
                         </table>
 
                         <div id="vj-chat-woo-settings">
-                            <table class="form-table">
+                            <table class="form-table" role="presentation">
                                 <?php
                                 vj_chat_render_field_row(__('WhatsApp Phone Number', 'vj-chat-order'), 'vj_chat_phone_field_callback');
                                 vj_chat_render_field_row(__('Button Text', 'vj-chat-order'), 'vj_chat_button_text_field_callback');
@@ -1675,12 +1660,11 @@ function vj_chat_render_settings_page()
                                 ?>
                             </table>
 
-                            <h3 class="vj-chat-section-title"
-                                style="margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                            <h3 class="vj-chat-section-title">
                                 <?php esc_html_e('Placement Configuration', 'vj-chat-order'); ?>
                             </h3>
 
-                            <table class="form-table">
+                            <table class="form-table" role="presentation">
                                 <?php
                                 vj_chat_render_field_row(__('Placement Mode', 'vj-chat-order'), 'vj_chat_placement_mode_callback');
                                 vj_chat_render_field_row(__('Button Position', 'vj-chat-order'), 'vj_chat_button_priority_callback');
@@ -1690,19 +1674,17 @@ function vj_chat_render_settings_page()
                                 ?>
                             </table>
 
-                            <h3 class="vj-chat-section-title"
-                                style="margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                            <h3 class="vj-chat-section-title">
                                 <?php esc_html_e('Message Settings', 'vj-chat-order'); ?>
                             </h3>
 
-                            <table class="form-table">
+                            <table class="form-table" role="presentation">
                                 <?php
                                 vj_chat_render_field_row(__('Intro Message', 'vj-chat-order'), 'vj_chat_intro_message_field_callback');
                                 ?>
                             </table>
 
-                            <h3 class="vj-chat-section-title"
-                                style="margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                            <h3 class="vj-chat-section-title">
                                 <?php esc_html_e('Message Labels & Icons', 'vj-chat-order'); ?>
                             </h3>
 
@@ -1736,7 +1718,7 @@ function vj_chat_render_settings_page()
                                 <?php esc_html_e('Customize the text and icons used in the WhatsApp message.', 'vj-chat-order'); ?>
                             </p>
 
-                            <table class="form-table">
+                            <table class="form-table" role="presentation">
                                 <?php
                                 vj_chat_render_message_field_row(__('Product', 'vj-chat-order'), 'vj_chat_label_product', 'Product', 'vj_chat_icon_product', '🛒');
                                 vj_chat_render_message_field_row(__('Quantity', 'vj-chat-order'), 'vj_chat_label_quantity', 'Quantity', 'vj_chat_icon_quantity', '🔢');
@@ -1749,13 +1731,12 @@ function vj_chat_render_settings_page()
                     </div>
 
                     <!-- Design Tab -->
-                    <div class="vj-chat-tab-panel" id="tab-design">
-                        <h3 class="vj-chat-section-title"
-                            style="margin: 0 0 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                    <div class="vj-chat-tab-panel" id="tab-design" role="tabpanel" aria-labelledby="tab-btn-design">
+                        <h3 class="vj-chat-section-title">
                             <?php esc_html_e('Chat Button Style', 'vj-chat-order'); ?>
                         </h3>
 
-                        <table class="form-table">
+                        <table class="form-table" role="presentation">
                             <?php
                             vj_chat_render_field_row(__('Chat Background Style', 'vj-chat-order'), 'vj_chat_chat_pill_bg_style_field_callback');
                             vj_chat_render_field_row(__('Chat Background Color', 'vj-chat-order'), 'vj_chat_chat_pill_bg_color_field_callback');
@@ -1773,12 +1754,11 @@ function vj_chat_render_settings_page()
                             ?>
                         </table>
 
-                        <h3 class="vj-chat-section-title"
-                            style="margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                        <h3 class="vj-chat-section-title">
                             <?php esc_html_e('Chat Widget Style', 'vj-chat-order'); ?>
                         </h3>
 
-                        <table class="form-table">
+                        <table class="form-table" role="presentation">
                             <?php
                             vj_chat_render_field_row(__('Widget Width', 'vj-chat-order'), 'vj_chat_chat_widget_width_field_callback');
                             vj_chat_render_field_row(__('Widget Max Height', 'vj-chat-order'), 'vj_chat_chat_widget_max_height_field_callback');
@@ -1798,13 +1778,12 @@ function vj_chat_render_settings_page()
                             ?>
                         </table>
 
-                        <h3 class="vj-chat-section-title"
-                            style="margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                        <h3 class="vj-chat-section-title">
                             <?php esc_html_e('WooCommerce Button Style', 'vj-chat-order'); ?>
                         </h3>
 
                         <!-- Standard Design Settings -->
-                        <table class="form-table" id="vj-standard-design-table">
+                        <table class="form-table" role="presentation" id="vj-standard-design-table">
                             <?php
                             vj_chat_render_field_row(__('Background Color', 'vj-chat-order'), 'vj_chat_bg_color_field_callback');
                             vj_chat_render_field_row(__('Text Color', 'vj-chat-order'), 'vj_chat_text_color_field_callback');
@@ -1817,7 +1796,7 @@ function vj_chat_render_settings_page()
                         </table>
 
                         <!-- Compact Design Settings -->
-                        <table class="form-table" id="vj-compact-design-table" style="display:none;">
+                        <table class="form-table" role="presentation" id="vj-compact-design-table" style="display:none;">
                             <?php
                             vj_chat_render_field_row(__('Compact Button Size', 'vj-chat-order'), 'vj_chat_compact_size_field_callback');
                             vj_chat_render_field_row(__('Compact Icon Size', 'vj-chat-order'), 'vj_chat_compact_icon_size_field_callback');
@@ -1829,9 +1808,7 @@ function vj_chat_render_settings_page()
                     </div>
                 </div>
 
-                <div style="margin-top: 24px;">
-                    <?php submit_button(__('Save Settings', 'vj-chat-order'), 'primary', 'submit', false); ?>
-                </div>
+                <?php submit_button(__('Save Settings', 'vj-chat-order')); ?>
             </form>
         </div>
 
@@ -1839,15 +1816,11 @@ function vj_chat_render_settings_page()
         <div class="vj-chat-sidebar">
             <div class="vj-chat-card">
                 <div class="vj-chat-card-header">
-                    <div class="vj-chat-card-icon preview">
-                        <span style="color: #fff; font-size: 18px;">👁️</span>
-                    </div>
-                    <div>
-                        <h2 class="vj-chat-card-title"><?php esc_html_e('Live Preview', 'vj-chat-order'); ?></h2>
-                        <p class="vj-chat-card-description"><?php esc_html_e('Save to update', 'vj-chat-order'); ?></p>
-                    </div>
+                    <h2 class="vj-chat-card-title"><?php esc_html_e('Live preview', 'vj-chat-order'); ?></h2>
+                    <p class="vj-chat-card-description"><?php esc_html_e('Updates as you edit. Save to apply on your site.', 'vj-chat-order'); ?></p>
                 </div>
 
+                <p class="vj-chat-preview-empty" id="vj-chat-preview-empty" hidden><?php esc_html_e('Chat and WooCommerce buttons are both turned off. Nothing will show on your site.', 'vj-chat-order'); ?></p>
                 <div class="vj-chat-preview-sections">
                     <!-- Chat Button Preview -->
                     <div class="vj-chat-preview-section vj-chat-preview-chat-button">
@@ -1936,7 +1909,7 @@ function vj_chat_render_settings_page()
                         </div>
                         <div class="vj-chat-preview-box sticky-preview">
                             <a href="#" onclick="return false;" class="vj-chat-preview-icon-btn" style="
-                                background-color: <?php echo esc_attr($bg_color); ?>;
+                                background-color: <?php echo esc_attr(get_option('vj_chat_compact_bg_color', '#25D366')); ?>;
                             ">
                                 <img src="<?php echo esc_url($icon_url); ?>" alt="WhatsApp">
                             </a>

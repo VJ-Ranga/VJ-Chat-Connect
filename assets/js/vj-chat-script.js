@@ -276,7 +276,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (mode === 'order' && vjChatData.productName) {
                     message = buildOrderMessage();
                 }
-                window.open("https://api.whatsapp.com/send?phone=" + phone + "&text=" + encodeURIComponent(message), "_blank");
+                openWhatsApp(phone, message);
                 setChatWidgetOpen(false);
             });
         });
@@ -285,12 +285,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-    function openChatWidget() {
-        if (!chatWidget || typeof toggleChatWidget !== 'function') {
+    // The floating button shows an "x" while the widget is open, so it toggles.
+    // Any other button (shortcode, product page) only ever opens the widget.
+    function openChatWidget(trigger) {
+        if (!chatWidget) {
             return false;
         }
-        toggleChatWidget();
+        if (trigger && trigger.classList.contains('vj-chat-floating-chat')) {
+            toggleChatWidget();
+        } else {
+            setChatWidgetOpen(true);
+        }
         return true;
+    }
+
+    // Opens WhatsApp without giving the new tab access to this page.
+    function openWhatsApp(phone, message) {
+        var digits = String(phone || '').replace(/\D/g, '');
+        if (!digits) {
+            return;
+        }
+        var win = window.open('https://api.whatsapp.com/send?phone=' + digits + '&text=' + encodeURIComponent(message || ''), '_blank', 'noopener,noreferrer');
+        if (win) {
+            win.opener = null;
+        }
     }
 
     buttons.forEach(function (whatsappButton) {
@@ -303,17 +321,17 @@ document.addEventListener("DOMContentLoaded", function () {
             var isChatButton = whatsappButton.classList.contains('vj-chat-chat');
 
             if (mode === 'chat' || !vjChatData.productName) {
-                if (!openChatWidget()) {
-                    window.open("https://api.whatsapp.com/send?phone=" + phone + "&text=" + encodeURIComponent(introMessage), "_blank");
+                if (!openChatWidget(whatsappButton)) {
+                    openWhatsApp(phone, introMessage);
                 }
                 return;
             }
 
-            if (mode === 'order' && isChatButton && openChatWidget()) {
+            if (mode === 'order' && isChatButton && openChatWidget(whatsappButton)) {
                 return;
             }
             var message = buildOrderMessage(introMessage);
-            window.open("https://api.whatsapp.com/send?phone=" + phone + "&text=" + encodeURIComponent(message), "_blank");
+            openWhatsApp(phone, message);
         });
     });
 });
