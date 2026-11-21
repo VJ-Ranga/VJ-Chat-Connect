@@ -5,7 +5,7 @@ Tags: woocommerce, whatsapp, order, button, chat
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 2.1.0
+Stable tag: 2.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Plugin URI: https://github.com/VJ-Ranga/VJ-Chat-Connect
@@ -107,6 +107,10 @@ Yes, you can upload your own icon or use emojis. Use Win + . (Windows) or Cmd + 
 9. Compact button on product page (frontend)
 
 == Changelog ==
+
+= 2.1.1 =
+* Fix: "Plugin could not be activated because it triggered a fatal error" (Cannot redeclare vj_chat_get_user_active_tab()) when VJ Chat Order for WooCommerce or another copy is already active. The plugin now stays inactive and shows an admin notice instead.
+* Fix: Deleting the plugin no longer wipes settings while VJ Chat Order for WooCommerce is still installed (both share the same vj_chat_* options).
 
 = 2.1.0 =
 * NEW: Improved button position setting with reliable theme-specific WooCommerce hooks

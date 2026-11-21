@@ -17,6 +17,18 @@ if (!current_user_can('activate_plugins')) {
     exit;
 }
 
+// VJ Chat Connect and VJ Chat Order for WooCommerce store their settings under
+// the same vj_chat_* option names. If the other plugin is still installed,
+// keep the settings so deleting one plugin does not wipe the other's data.
+if (!function_exists('get_plugins')) {
+    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+}
+foreach (array_keys(get_plugins()) as $vj_chat_plugin_file) {
+    if ($vj_chat_plugin_file !== WP_UNINSTALL_PLUGIN && basename($vj_chat_plugin_file) === 'vj-chat-order.php') {
+        return;
+    }
+}
+
 $vj_chat_options = array(
     // General Settings
     'vj_chat_enable_chat',
